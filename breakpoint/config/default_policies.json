@@ -22,6 +22,13 @@
     "semantic_check_enabled": true,
     "similarity_method": "max(token_jaccard,char_3gram_jaccard)"
   },
+  "latency_policy": {
+    "min_baseline_latency_ms": 50,
+    "warn_increase_pct": 30,
+    "block_increase_pct": 60,
+    "warn_delta_ms": 0.0,
+    "block_delta_ms": 0.0
+  },
   "model_pricing": {
     "gpt-4.1-mini": {
       "input_per_1k": 0.0004,

@@ -70,3 +70,40 @@ def test_cost_low_baseline_warns():
     )
     assert decision.status == "WARN"
     assert "COST_WARN_LOW_BASELINE" in decision.codes
+
+
+def test_latency_warn_on_increase():
+    decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "same", "cost_usd": 1.0, "latency_ms": 140},
+    )
+    assert decision.status == "WARN"
+    assert "LATENCY_WARN_INCREASE" in decision.codes
+
+
+def test_latency_blocks_on_large_increase():
+    decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "same", "cost_usd": 1.0, "latency_ms": 200},
+    )
+    assert decision.status == "BLOCK"
+    assert "LATENCY_BLOCK_INCREASE" in decision.codes
+
+
+def test_latency_missing_data_warns():
+    decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0},
+        candidate={"output": "same", "cost_usd": 1.0},
+    )
+    assert decision.status == "WARN"
+    assert "LATENCY_WARN_MISSING_DATA" in decision.codes
+
+
+def test_latency_metadata_mapping():
+    decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0},
+        candidate={"output": "same", "cost_usd": 1.0},
+        metadata={"baseline_latency_ms": 100, "candidate_latency_ms": 140},
+    )
+    assert decision.status == "WARN"
+    assert "LATENCY_WARN_INCREASE" in decision.codes

@@ -2,6 +2,7 @@ from breakpoint.engine.aggregator import aggregate_policy_results
 from breakpoint.engine.config import load_config
 from breakpoint.engine.policies.cost import evaluate_cost_policy
 from breakpoint.engine.policies.drift import evaluate_drift_policy
+from breakpoint.engine.policies.latency import evaluate_latency_policy
 from breakpoint.engine.policies.pii import evaluate_pii_policy
 from breakpoint.models.decision import Decision
 
@@ -30,6 +31,11 @@ def evaluate(
             candidate=candidate_record,
             thresholds=config["cost_policy"],
             pricing=config.get("model_pricing", {}),
+        ),
+        evaluate_latency_policy(
+            baseline=baseline_record,
+            candidate=candidate_record,
+            thresholds=config.get("latency_policy", {}),
         ),
         evaluate_pii_policy(
             candidate=candidate_record,
