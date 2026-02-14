@@ -123,3 +123,16 @@ def test_cli_stdin_input(tmp_path):
     assert result.returncode == 2
     payload = json.loads(result.stdout)
     assert payload["status"] == "WARN"
+
+
+def test_cli_config_print_outputs_json():
+    result = subprocess.run(
+        [sys.executable, "-m", "breakpoint.cli.main", "config", "print", "--compact"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert "cost_policy" in payload
+    assert "latency_policy" in payload

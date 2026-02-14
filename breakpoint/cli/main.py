@@ -2,6 +2,7 @@ import argparse
 import json
 import sys
 
+from breakpoint.engine.config import load_config
 from breakpoint.engine.evaluator import evaluate
 
 
@@ -26,9 +27,21 @@ def main() -> int:
         help="Return non-zero exit codes for WARN/BLOCK (useful for CI).",
     )
 
+    config_parser = subparsers.add_parser("config", help="Inspect BreakPoint configuration.")
+    config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
+    config_print_parser = config_subparsers.add_parser("print", help="Print the effective merged config JSON.")
+    config_print_parser.add_argument("--config", help="Path to custom JSON config.")
+    config_print_parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="Emit compact JSON (no indentation).",
+    )
+
     args = parser.parse_args()
     if args.command == "evaluate":
         return _run_evaluate(args)
+    if args.command == "config" and args.config_command == "print":
+        return _run_config_print(args)
     return 1
 
 
@@ -66,6 +79,15 @@ def _run_evaluate(args: argparse.Namespace) -> int:
     for reason in decision.reasons:
         print(f"- {reason}")
     return _exit_code(decision.status) if args.exit_codes else 0
+
+
+def _run_config_print(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    if args.compact:
+        print(json.dumps(config, sort_keys=True))
+    else:
+        print(json.dumps(config, indent=2, sort_keys=True))
+    return 0
 
 
 def _read_json(path: str, stdin_cache: dict[str, str]) -> dict:

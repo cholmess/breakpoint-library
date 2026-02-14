@@ -54,6 +54,7 @@ breakpoint/
 │       ├── cost.py
 │       ├── pii.py
 │       ├── drift.py
+│       ├── latency.py
 │
 ├── models/
 │   └── decision.py
@@ -91,6 +92,10 @@ Heuristic checks:
 - Basic semantic similarity (optional)
 
 Large drift → WARN
+
+### 4️⃣ Latency Policy
+- Latency increase > 30% → WARN
+- Latency increase > 60% → BLOCK
 
 ---
 
