@@ -15,8 +15,9 @@ def evaluate(
     candidate: dict | None = None,
     strict: bool = False,
     config_path: str | None = None,
+    config_environment: str | None = None,
 ) -> Decision:
-    config = load_config(config_path)
+    config = load_config(config_path, environment=config_environment)
     baseline_record, candidate_record = _normalize_inputs(
         baseline_output=baseline_output,
         candidate_output=candidate_output,

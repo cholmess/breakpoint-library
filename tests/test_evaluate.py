@@ -1,3 +1,7 @@
+import json
+
+import pytest
+
 from breakpoint import evaluate
 
 
@@ -109,3 +113,57 @@ def test_latency_metadata_mapping():
     )
     assert decision.status == "WARN"
     assert "LATENCY_INCREASE_WARN" in decision.reason_codes
+
+
+def test_environment_override_changes_thresholds(tmp_path):
+    config_path = tmp_path / "policy.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "environments": {
+                    "dev": {"cost_policy": {"warn_increase_pct": 5, "block_increase_pct": 10}},
+                    "prod": {"cost_policy": {"warn_increase_pct": 50, "block_increase_pct": 70}},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    dev_decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "same", "cost_usd": 1.08, "latency_ms": 100},
+        config_path=str(config_path),
+        config_environment="dev",
+    )
+    assert dev_decision.status == "WARN"
+    assert "COST_INCREASE_WARN" in dev_decision.reason_codes
+
+    prod_decision = evaluate(
+        baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "same", "cost_usd": 1.08, "latency_ms": 100},
+        config_path=str(config_path),
+        config_environment="prod",
+    )
+    assert prod_decision.status == "ALLOW"
+
+
+def test_invalid_config_thresholds_fail_fast(tmp_path):
+    config_path = tmp_path / "invalid_policy.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "cost_policy": {
+                    "warn_increase_pct": 40,
+                    "block_increase_pct": 30,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="block_increase_pct"):
+        evaluate(
+            baseline={"output": "same", "cost_usd": 1.0},
+            candidate={"output": "same", "cost_usd": 1.08},
+            config_path=str(config_path),
+        )

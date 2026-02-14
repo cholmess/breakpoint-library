@@ -20,6 +20,7 @@ def main() -> int:
     )
     evaluate_parser.add_argument("--strict", action="store_true", help="Promote WARN to BLOCK.")
     evaluate_parser.add_argument("--config", help="Path to custom JSON config.")
+    evaluate_parser.add_argument("--env", help="Config environment name (for environments.<name> overrides).")
     evaluate_parser.add_argument("--json", action="store_true", help="Emit JSON decision output.")
     evaluate_parser.add_argument(
         "--exit-codes",
@@ -36,6 +37,7 @@ def main() -> int:
     config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
     config_print_parser = config_subparsers.add_parser("print", help="Print the effective merged config JSON.")
     config_print_parser.add_argument("--config", help="Path to custom JSON config.")
+    config_print_parser.add_argument("--env", help="Config environment name (for environments.<name> overrides).")
     config_print_parser.add_argument(
         "--compact",
         action="store_true",
@@ -65,6 +67,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             candidate=candidate_data,
             strict=args.strict,
             config_path=args.config,
+            config_environment=args.env,
         )
     except Exception as exc:
         if args.json:
@@ -102,7 +105,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
 
 
 def _run_config_print(args: argparse.Namespace) -> int:
-    config = load_config(args.config)
+    config = load_config(args.config, environment=args.env)
     if args.compact:
         print(json.dumps(config, sort_keys=True))
     else:

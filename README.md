@@ -31,14 +31,25 @@ breakpoint evaluate baseline.json candidate.json --json --exit-codes
 
 Exit codes:
 - `0` = `ALLOW`
-- `2` = `WARN`
-- `3` = `BLOCK`
+- `1` = `WARN`
+- `2` = `BLOCK`
+
+Gate threshold options:
+
+```bash
+# fail on WARN or BLOCK
+breakpoint evaluate baseline.json candidate.json --fail-on warn
+
+# fail only on BLOCK
+breakpoint evaluate baseline.json candidate.json --fail-on block
+```
 
 Print the effective (merged) config:
 
 ```bash
 breakpoint config print
 breakpoint config print --config custom_policy.json
+breakpoint config print --config custom_policy.json --env dev
 ```
 
 ## Input schema

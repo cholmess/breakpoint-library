@@ -238,3 +238,85 @@ def test_cli_config_print_outputs_json():
     payload = json.loads(result.stdout)
     assert "cost_policy" in payload
     assert "latency_policy" in payload
+
+
+def test_cli_env_override_changes_result(tmp_path):
+    config_path = tmp_path / "policy.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "environments": {
+                    "dev": {"cost_policy": {"warn_increase_pct": 5, "block_increase_pct": 10}},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.08}), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--config",
+            str(config_path),
+            "--env",
+            "dev",
+            "--json",
+            "--fail-on",
+            "warn",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "WARN"
+    assert "COST_INCREASE_WARN" in payload["reason_codes"]
+
+
+def test_cli_config_print_with_env_applies_overrides(tmp_path):
+    config_path = tmp_path / "policy.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "cost_policy": {"warn_increase_pct": 20, "block_increase_pct": 35},
+                "environments": {
+                    "dev": {"cost_policy": {"warn_increase_pct": 5, "block_increase_pct": 10}},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "config",
+            "print",
+            "--config",
+            str(config_path),
+            "--env",
+            "dev",
+            "--compact",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["cost_policy"]["warn_increase_pct"] == 5
+    assert "environments" not in payload
