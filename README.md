@@ -52,6 +52,9 @@ breakpoint config print --config custom_policy.json
 breakpoint config print --config custom_policy.json --env dev
 ```
 
+Baseline lifecycle guidance:
+- `docs/baseline-lifecycle.md`
+
 ## Input schema
 
 Each input JSON is an object with at least:

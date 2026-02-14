@@ -206,9 +206,9 @@ P0-5 — 10-Minute Quickstart
 5. P0-5 10-Minute Quickstart
 
 #### Current Sprint Focus
-- In progress: P0-1 Decision Contract v1
-- Immediate next artifact: `docs/decision-contract-v1.md`
-- First implementation target: deterministic JSON output from `evaluate()` and CLI parity
+- In progress: P0-3 Baseline Lifecycle
+- Immediate next artifact: `docs/baseline-lifecycle.md`
+- First implementation target: reproducible baseline artifacts + rollback path with sample validation
 
 ### P1 (High-value after P0)
 - Built-in CI templates (GitHub Actions + generic shell example)
