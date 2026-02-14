@@ -1,7 +1,10 @@
 {
   "cost_policy": {
+    "min_baseline_cost_usd": 0.01,
     "warn_increase_pct": 20,
-    "block_increase_pct": 35
+    "block_increase_pct": 35,
+    "warn_delta_usd": 0.0,
+    "block_delta_usd": 0.0
   },
   "pii_policy": {
     "patterns": {
@@ -16,7 +19,8 @@
     "warn_length_delta_pct": 60,
     "warn_short_ratio": 0.35,
     "warn_min_similarity": 0.15,
-    "semantic_check_enabled": true
+    "semantic_check_enabled": true,
+    "similarity_method": "max(token_jaccard,char_3gram_jaccard)"
   },
   "model_pricing": {
     "gpt-4.1-mini": {

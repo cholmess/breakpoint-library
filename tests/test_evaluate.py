@@ -19,6 +19,21 @@ def test_pii_blocks_email():
     assert "PII_BLOCK_EMAIL" in decision.codes
 
 
+def test_pii_credit_card_uses_luhn_check():
+    decision = evaluate(
+        baseline={"output": "hello"},
+        candidate={"output": "test 4111 1111 1111 1111", "cost_usd": 1.0},
+    )
+    assert decision.status == "BLOCK"
+    assert "PII_BLOCK_CREDIT_CARD" in decision.codes
+
+    not_a_card = evaluate(
+        baseline={"output": "hello"},
+        candidate={"output": "test 4111 1111 1111 1112", "cost_usd": 1.0},
+    )
+    assert "PII_BLOCK_CREDIT_CARD" not in not_a_card.codes
+
+
 def test_drift_blocks_empty_candidate():
     decision = evaluate(
         baseline={"output": "long baseline text", "cost_usd": 1.0},
@@ -46,3 +61,12 @@ def test_missing_cost_data_warns():
     assert decision.status in {"WARN", "BLOCK"}
     assert "COST_WARN_MISSING_DATA" in decision.codes
     assert "cost" in decision.details
+
+
+def test_cost_low_baseline_warns():
+    decision = evaluate(
+        baseline={"output": "hello", "cost_usd": 0.0001},
+        candidate={"output": "hello", "cost_usd": 0.0003},
+    )
+    assert decision.status == "WARN"
+    assert "COST_WARN_LOW_BASELINE" in decision.codes

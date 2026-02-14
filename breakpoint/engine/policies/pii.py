@@ -16,6 +16,8 @@ def evaluate_pii_policy(candidate: dict, patterns: dict, allowlist: list[str]) -
             continue
         if _is_allowlisted(text, regex, compiled_allowlist):
             continue
+        if label.lower() == "credit_card" and not _has_luhn_valid_match(text, regex):
+            continue
         blocked_patterns.append(label.upper())
 
     if blocked_patterns:
@@ -35,3 +37,24 @@ def _is_allowlisted(text: str, regex: re.Pattern, allowlist: list[re.Pattern]) -
             if allowed.search(value):
                 return True
     return False
+
+
+def _has_luhn_valid_match(text: str, regex: re.Pattern) -> bool:
+    for match in regex.finditer(text):
+        candidate = re.sub(r"[^0-9]", "", match.group(0))
+        if 13 <= len(candidate) <= 19 and _luhn_check(candidate):
+            return True
+    return False
+
+
+def _luhn_check(value: str) -> bool:
+    total = 0
+    parity = (len(value) - 2) % 2
+    for index, ch in enumerate(value):
+        digit = ord(ch) - ord("0")
+        if index % 2 == parity:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return total % 10 == 0

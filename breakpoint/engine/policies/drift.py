@@ -28,6 +28,7 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
     warn_short_ratio = float(thresholds.get("warn_short_ratio", 0.35))
     min_similarity = float(thresholds.get("warn_min_similarity", 0.15))
     semantic_enabled = bool(thresholds.get("semantic_check_enabled", True))
+    similarity_method = str(thresholds.get("similarity_method", "max(token_jaccard,char_3gram_jaccard)"))
 
     if delta_pct > warn_delta:
         reasons.append(f"Output drift detected: length delta {delta_pct:.1f}% (>{warn_delta:.0f}%).")
@@ -42,8 +43,9 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
         details["short_ratio"] = short_ratio
 
     if semantic_enabled:
-        similarity = _token_overlap_similarity(baseline_text, candidate_text)
+        similarity = _similarity(baseline_text, candidate_text, method=similarity_method)
         details["similarity"] = similarity
+        details["similarity_method"] = similarity_method
         if similarity < min_similarity:
             reasons.append(
                 f"Output drift detected: lexical similarity {similarity:.2f} (<{min_similarity:.2f})."
@@ -63,6 +65,40 @@ def _token_overlap_similarity(left: str, right: str) -> float:
         return 1.0
     intersection = left_tokens & right_tokens
     return len(intersection) / len(union)
+
+
+def _char_ngram_jaccard(left: str, right: str, n: int) -> float:
+    left_grams = set(_char_ngrams(_normalize_for_ngrams(left), n))
+    right_grams = set(_char_ngrams(_normalize_for_ngrams(right), n))
+    union = left_grams | right_grams
+    if not union:
+        return 1.0
+    return len(left_grams & right_grams) / len(union)
+
+
+def _normalize_for_ngrams(value: str) -> str:
+    # Keep it deterministic and cheap: lowercase and keep basic word chars/spaces.
+    return " ".join(re.findall(r"[a-zA-Z0-9_]+", value.lower()))
+
+
+def _char_ngrams(value: str, n: int) -> list[str]:
+    if n <= 0:
+        return []
+    if len(value) < n:
+        return []
+    return [value[i : i + n] for i in range(0, len(value) - n + 1)]
+
+
+def _similarity(left: str, right: str, method: str) -> float:
+    if method == "token_jaccard":
+        return _token_overlap_similarity(left, right)
+    if method == "char_3gram_jaccard":
+        return _char_ngram_jaccard(left, right, 3)
+    if method.startswith("max(") and method.endswith(")"):
+        items = [item.strip() for item in method[4:-1].split(",") if item.strip()]
+        scores = [_similarity(left, right, item) for item in items] if items else [1.0]
+        return max(scores)
+    return _token_overlap_similarity(left, right)
 
 
 def _tokenize(value: str) -> list[str]:
