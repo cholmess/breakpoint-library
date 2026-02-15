@@ -9,6 +9,12 @@ Baseline:
 examples/install_worthy/baseline.json
 ```
 
+Run all scenarios in one command:
+
+```bash
+make demo
+```
+
 ## Scenario A: Cost regression from model swap
 
 Command:

@@ -9,6 +9,12 @@ pip install -e .
 breakpoint evaluate baseline.json candidate.json
 ```
 
+Run the install-worthy demo scenarios in one command:
+
+```bash
+make demo
+```
+
 Detailed 10-minute walkthrough:
 - `docs/quickstart-10min.md`
 - `docs/install-worthy-examples.md`
