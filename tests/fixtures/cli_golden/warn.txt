@@ -1,0 +1,11 @@
+VERDICT: WARN
+TOP_REASONS:
+- Cost increased by 25.0% (>20%).
+- Latency increased by 35.0% (>30%).
+KEY_DELTAS:
+- Cost delta %: +25.00%
+- Cost delta USD: +0.250000
+- Latency delta %: +35.00%
+- Latency delta ms: +35.00
+- Similarity: 0.400000
+RECOMMENDED_ACTION: Ship with review.

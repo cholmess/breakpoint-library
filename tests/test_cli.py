@@ -1,6 +1,29 @@
 import json
 import subprocess
 import sys
+from pathlib import Path
+
+
+CLI_GOLDEN_DIR = Path(__file__).parent / "fixtures" / "cli_golden"
+
+
+def _run_evaluate_text(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            *args,
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _read_golden(name: str) -> str:
+    return (CLI_GOLDEN_DIR / name).read_text(encoding="utf-8")
 
 
 def test_cli_evaluate_json_output(tmp_path):
@@ -107,6 +130,52 @@ def test_cli_text_output_has_deterministic_summary_order(tmp_path):
         "- Length delta %: +81.82%",
         "- Similarity: 0.666667",
     ]
+
+
+def test_cli_text_output_matches_allow_golden():
+    result = _run_evaluate_text(
+        "examples/quickstart/baseline.json",
+        "examples/quickstart/candidate_allow.json",
+    )
+    assert result.returncode == 0
+    assert result.stdout == _read_golden("allow.txt")
+
+
+def test_cli_text_output_matches_warn_golden():
+    result = _run_evaluate_text(
+        "examples/quickstart/baseline.json",
+        "examples/quickstart/candidate_warn.json",
+    )
+    assert result.returncode == 0
+    assert result.stdout == _read_golden("warn.txt")
+
+
+def test_cli_text_output_matches_block_golden():
+    result = _run_evaluate_text(
+        "examples/install_worthy/baseline.json",
+        "examples/install_worthy/candidate_format_regression.json",
+    )
+    assert result.returncode == 0
+    assert result.stdout == _read_golden("block.txt")
+
+
+def test_cli_recommended_action_by_status():
+    allow_result = _run_evaluate_text(
+        "examples/quickstart/baseline.json",
+        "examples/quickstart/candidate_allow.json",
+    )
+    warn_result = _run_evaluate_text(
+        "examples/quickstart/baseline.json",
+        "examples/quickstart/candidate_warn.json",
+    )
+    block_result = _run_evaluate_text(
+        "examples/install_worthy/baseline.json",
+        "examples/install_worthy/candidate_format_regression.json",
+    )
+
+    assert "RECOMMENDED_ACTION: Safe to ship." in allow_result.stdout
+    assert "RECOMMENDED_ACTION: Ship with review." in warn_result.stdout
+    assert "RECOMMENDED_ACTION: Stop deploy and investigate." in block_result.stdout
 
 
 def test_cli_text_output_shows_pii_counts(tmp_path):

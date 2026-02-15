@@ -1,0 +1,8 @@
+VERDICT: ALLOW
+TOP_REASONS:
+- None
+KEY_DELTAS:
+- Latency delta %: +2.00%
+- Latency delta ms: +2.00
+- Similarity: 1.000000
+RECOMMENDED_ACTION: Safe to ship.

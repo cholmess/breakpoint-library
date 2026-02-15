@@ -1,0 +1,12 @@
+VERDICT: BLOCK
+TOP_REASONS:
+- Output contract break: candidate output is not valid JSON.
+- Output drift detected: candidate length ratio 0.27 (<0.30).
+- Output drift detected: lexical similarity 0.07 (<0.10).
+KEY_DELTAS:
+- Latency delta %: +2.78%
+- Latency delta ms: +5.00
+- Short ratio: 0.271429
+- Output contract invalid JSON count: 1
+- Similarity: 0.067164
+RECOMMENDED_ACTION: Stop deploy and investigate.
