@@ -49,6 +49,23 @@ Default policy posture (out of the box):
 - Latency: `WARN` at `+25%`, `BLOCK` at `+60%`
 - Drift: `WARN` for large length/similarity shifts (`75%`, `0.30`, `0.10`)
 
+### Copy-Paste GitHub Actions Gate
+
+Use the template:
+- `examples/ci/github-actions-breakpoint.yml`
+
+Copy it to:
+- `.github/workflows/breakpoint-gate.yml`
+
+What `--fail-on warn` means:
+- Any `WARN` or `BLOCK` fails the CI step.
+- Exit behavior remains deterministic: `ALLOW=0`, `WARN=1`, `BLOCK=2`.
+
+If you only want to fail on `BLOCK`, change:
+- `BREAKPOINT_FAIL_ON: warn`
+to:
+- `BREAKPOINT_FAIL_ON: block`
+
 ## Try In 60 Seconds
 
 ```bash
