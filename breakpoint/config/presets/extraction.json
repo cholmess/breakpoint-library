@@ -1,0 +1,16 @@
+{
+  "drift_policy": {
+    "warn_length_delta_pct": 30,
+    "warn_short_ratio": 0.60,
+    "warn_min_similarity": 0.30
+  },
+  "cost_policy": {
+    "warn_increase_pct": 20,
+    "block_increase_pct": 35
+  },
+  "latency_policy": {
+    "warn_increase_pct": 30,
+    "block_increase_pct": 60
+  }
+}
+

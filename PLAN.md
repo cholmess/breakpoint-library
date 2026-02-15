@@ -214,7 +214,8 @@ P0-5 — 10-Minute Quickstart
 - Completed: P1-0 CI templates (GitHub Actions + shell example)
 - Completed: P1-1 waivers/suppressions (expiration + audit fields)
 - Completed: P1-2 value metrics (metrics summarize + docs)
-- Next focus: P1 policy presets by use case
+- Completed: P1-3 policy presets (chatbot/support/extraction)
+- Next focus: Phase 2 (only if adoption)
 
 ### P1 (High-value after P0)
 - Built-in CI templates (GitHub Actions + generic shell example)

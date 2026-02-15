@@ -6,15 +6,24 @@ from breakpoint.engine.errors import ConfigValidationError
 from breakpoint.engine.waivers import parse_waivers
 
 
-def load_config(config_path: str | None = None, environment: str | None = None) -> dict:
+def load_config(
+    config_path: str | None = None,
+    environment: str | None = None,
+    preset: str | None = None,
+) -> dict:
     try:
         default_config = _load_default_config()
-        chosen_path = config_path or os.getenv("BREAKPOINT_CONFIG")
         merged_config = default_config
+
+        chosen_preset = preset or os.getenv("BREAKPOINT_PRESET")
+        if chosen_preset:
+            merged_config = _deep_merge(merged_config, _load_preset_config(chosen_preset))
+
+        chosen_path = config_path or os.getenv("BREAKPOINT_CONFIG")
         if chosen_path:
             with open(chosen_path, "r", encoding="utf-8") as f:
                 custom = json.load(f)
-            merged_config = _deep_merge(default_config, custom)
+            merged_config = _deep_merge(merged_config, custom)
 
         chosen_environment = environment or os.getenv("BREAKPOINT_ENV")
         if chosen_environment:
@@ -34,6 +43,29 @@ def load_config(config_path: str | None = None, environment: str | None = None) 
 def _load_default_config() -> dict:
     package = "breakpoint.config"
     resource = resources.files(package).joinpath("default_policies.json")
+    with resource.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def available_presets() -> list[str]:
+    package = "breakpoint.config.presets"
+    base = resources.files(package)
+    names: list[str] = []
+    for child in base.iterdir():
+        if child.is_file() and child.name.endswith(".json"):
+            names.append(child.name[:-5])
+    return sorted(names)
+
+
+def _load_preset_config(name: str) -> dict:
+    if not isinstance(name, str) or not name.strip():
+        raise ConfigValidationError("Preset name must be a non-empty string.")
+    preset = name.strip()
+    package = "breakpoint.config.presets"
+    resource = resources.files(package).joinpath(f"{preset}.json")
+    if not resource.is_file():
+        available = ", ".join(available_presets()) or "(none)"
+        raise ConfigValidationError(f"Unknown preset '{preset}'. Available presets: {available}.")
     with resource.open("r", encoding="utf-8") as f:
         return json.load(f)
 

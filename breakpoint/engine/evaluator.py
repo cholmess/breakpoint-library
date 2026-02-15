@@ -22,8 +22,9 @@ def evaluate(
     strict: bool = False,
     config_path: str | None = None,
     config_environment: str | None = None,
+    preset: str | None = None,
 ) -> Decision:
-    config = load_config(config_path, environment=config_environment)
+    config = load_config(config_path, environment=config_environment, preset=preset)
     metadata_input = metadata or {}
     baseline_record, candidate_record = _normalize_inputs(
         baseline_output=baseline_output,

@@ -3,7 +3,7 @@ import json
 import sys
 
 from breakpoint.engine.errors import ConfigValidationError
-from breakpoint.engine.config import load_config
+from breakpoint.engine.config import available_presets, load_config
 from breakpoint.engine.metrics import summarize_decisions
 from breakpoint.engine.evaluator import evaluate
 
@@ -22,6 +22,11 @@ def main() -> int:
     )
     evaluate_parser.add_argument("--strict", action="store_true", help="Promote WARN to BLOCK.")
     evaluate_parser.add_argument("--config", help="Path to custom JSON config.")
+    evaluate_parser.add_argument(
+        "--preset",
+        choices=available_presets(),
+        help="Built-in policy preset name (merged before --config).",
+    )
     evaluate_parser.add_argument("--env", help="Config environment name (for environments.<name> overrides).")
     evaluate_parser.add_argument("--json", action="store_true", help="Emit JSON decision output.")
     evaluate_parser.add_argument(
@@ -43,12 +48,18 @@ def main() -> int:
     config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
     config_print_parser = config_subparsers.add_parser("print", help="Print the effective merged config JSON.")
     config_print_parser.add_argument("--config", help="Path to custom JSON config.")
+    config_print_parser.add_argument(
+        "--preset",
+        choices=available_presets(),
+        help="Built-in policy preset name (merged before --config).",
+    )
     config_print_parser.add_argument("--env", help="Config environment name (for environments.<name> overrides).")
     config_print_parser.add_argument(
         "--compact",
         action="store_true",
         help="Emit compact JSON (no indentation).",
     )
+    config_subparsers.add_parser("presets", help="List built-in preset names.")
 
     metrics_parser = subparsers.add_parser("metrics", help="Compute metrics from decision JSON artifacts.")
     metrics_subparsers = metrics_parser.add_subparsers(dest="metrics_command", required=True)
@@ -67,6 +78,8 @@ def main() -> int:
         return _run_evaluate(args)
     if args.command == "config" and args.config_command == "print":
         return _run_config_print(args)
+    if args.command == "config" and args.config_command == "presets":
+        return _run_config_presets(args)
     if args.command == "metrics" and args.metrics_command == "summarize":
         return _run_metrics_summarize(args)
     return 1
@@ -89,6 +102,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             config_path=args.config,
             config_environment=args.env,
             metadata={"evaluation_time": args.now} if args.now else None,
+            preset=args.preset,
         )
     except Exception as exc:
         error_code = "CONFIG_VALIDATION_ERROR" if isinstance(exc, ConfigValidationError) else "INPUT_VALIDATION_ERROR"
@@ -127,11 +141,17 @@ def _run_evaluate(args: argparse.Namespace) -> int:
 
 
 def _run_config_print(args: argparse.Namespace) -> int:
-    config = load_config(args.config, environment=args.env)
+    config = load_config(args.config, environment=args.env, preset=args.preset)
     if args.compact:
         print(json.dumps(config, sort_keys=True))
     else:
         print(json.dumps(config, indent=2, sort_keys=True))
+    return 0
+
+
+def _run_config_presets(_args: argparse.Namespace) -> int:
+    for name in available_presets():
+        print(name)
     return 0
 
 

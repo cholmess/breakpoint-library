@@ -240,6 +240,52 @@ def test_cli_config_print_outputs_json():
     assert "latency_policy" in payload
 
 
+def test_cli_config_presets_lists_names():
+    result = subprocess.run(
+        [sys.executable, "-m", "breakpoint.cli.main", "config", "presets"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    names = {line.strip() for line in result.stdout.splitlines() if line.strip()}
+    assert {"chatbot", "support", "extraction"}.issubset(names)
+
+
+def test_cli_evaluate_with_preset_works(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(
+        json.dumps({"output": "hello", "cost_usd": 1.0, "latency_ms": 100}),
+        encoding="utf-8",
+    )
+    candidate_path.write_text(
+        json.dumps({"output": "hello world", "cost_usd": 1.25, "latency_ms": 100}),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--preset",
+            "chatbot",
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["schema_version"] == "1.0.0"
+
+
 def test_cli_env_override_changes_result(tmp_path):
     config_path = tmp_path / "policy.json"
     config_path.write_text(

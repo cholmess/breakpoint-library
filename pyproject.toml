@@ -21,6 +21,7 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "breakpoint.config" = ["*.json"]
+"breakpoint.config.presets" = ["*.json"]
 
 [tool.setuptools.packages.find]
 where = ["."]

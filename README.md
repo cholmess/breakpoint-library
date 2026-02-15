@@ -70,6 +70,9 @@ CI templates:
 Value metrics:
 - `docs/value-metrics.md`
 
+Policy presets:
+- `docs/policy-presets.md`
+
 ## Input schema
 
 Each input JSON is an object with at least:
