@@ -47,7 +47,7 @@ def test_drift_blocks_empty_candidate():
         candidate={"output": "  ", "cost_usd": 1.0},
     )
     assert decision.status == "BLOCK"
-    assert "DRIFT_EMPTY_OUTPUT_WARN" in decision.reason_codes
+    assert "DRIFT_EMPTY_OUTPUT_BLOCK" in decision.reason_codes
 
 
 def test_strict_promotes_warn_to_block():

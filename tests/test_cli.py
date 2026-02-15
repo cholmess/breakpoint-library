@@ -152,6 +152,37 @@ def test_cli_text_output_matches_block_golden():
     assert result.stdout == _read_golden("block.txt")
 
 
+def test_cli_empty_candidate_marks_drift_as_block(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(
+        json.dumps({"output": "long baseline text", "cost_usd": 1.0, "latency_ms": 100}),
+        encoding="utf-8",
+    )
+    candidate_path.write_text(
+        json.dumps({"output": "   ", "cost_usd": 1.0, "latency_ms": 100}),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Final Decision: BLOCK" in result.stdout
+    assert "✗ Output drift:" in result.stdout
+
+
 def test_cli_decision_header_by_status():
     allow_result = _run_evaluate_text(
         "examples/quickstart/baseline.json",
