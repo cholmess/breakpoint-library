@@ -1,0 +1,6 @@
+{
+  "output": "Contact me at hi@example.com and I will follow up.",
+  "cost_usd": 1.4,
+  "latency_ms": 170,
+  "model": "gpt-4.1-mini"
+}

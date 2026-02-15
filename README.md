@@ -9,6 +9,9 @@ pip install -e .
 breakpoint evaluate baseline.json candidate.json
 ```
 
+Detailed 10-minute walkthrough:
+- `docs/quickstart-10min.md`
+
 ## CLI
 
 Evaluate two JSON files:

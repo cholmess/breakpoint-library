@@ -1,0 +1,6 @@
+{
+  "output": "Hello! I can help. Please share your account number and issue details.",
+  "cost_usd": 1.25,
+  "latency_ms": 135,
+  "model": "gpt-4.1-mini"
+}
