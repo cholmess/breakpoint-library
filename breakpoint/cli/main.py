@@ -2,6 +2,7 @@ import argparse
 import json
 import sys
 
+from breakpoint.engine.errors import ConfigValidationError
 from breakpoint.engine.config import load_config
 from breakpoint.engine.evaluator import evaluate
 
@@ -31,6 +32,10 @@ def main() -> int:
         "--fail-on",
         choices=["warn", "block"],
         help="Return non-zero based on threshold: warn fails on WARN/BLOCK, block fails only on BLOCK.",
+    )
+    evaluate_parser.add_argument(
+        "--now",
+        help="Evaluation time for waiver expiry checks (ISO-8601, e.g. 2026-02-15T00:00:00Z).",
     )
 
     config_parser = subparsers.add_parser("config", help="Inspect BreakPoint configuration.")
@@ -68,8 +73,10 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             strict=args.strict,
             config_path=args.config,
             config_environment=args.env,
+            metadata={"evaluation_time": args.now} if args.now else None,
         )
     except Exception as exc:
+        error_code = "CONFIG_VALIDATION_ERROR" if isinstance(exc, ConfigValidationError) else "INPUT_VALIDATION_ERROR"
         if args.json:
             print(
                 json.dumps(
@@ -77,7 +84,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
                         "schema_version": "1.0.0",
                         "status": "BLOCK",
                         "reasons": [str(exc)],
-                        "reason_codes": ["INPUT_VALIDATION_ERROR"],
+                        "reason_codes": [error_code],
                     },
                     indent=2,
                 )

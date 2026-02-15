@@ -47,6 +47,12 @@ breakpoint evaluate baseline.json candidate.json --fail-on warn
 breakpoint evaluate baseline.json candidate.json --fail-on block
 ```
 
+Waivers (suppressions):
+
+```bash
+breakpoint evaluate baseline.json candidate.json --config policy.json --now 2026-02-15T00:00:00Z --json
+```
+
 Print the effective (merged) config:
 
 ```bash

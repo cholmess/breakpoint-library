@@ -1,4 +1,5 @@
 from breakpoint.engine.policies.base import PolicyResult
+from breakpoint.engine.reason_codes import INTERNAL_TO_DECISION
 from breakpoint.models.decision import Decision
 
 
@@ -36,22 +37,7 @@ def aggregate_policy_results(results: list[PolicyResult], strict: bool = False) 
 
 
 def _to_reason_code(code: str) -> str:
-    mapping = {
-        "COST_WARN_INCREASE": "COST_INCREASE_WARN",
-        "COST_BLOCK_INCREASE": "COST_INCREASE_BLOCK",
-        "LATENCY_WARN_INCREASE": "LATENCY_INCREASE_WARN",
-        "LATENCY_BLOCK_INCREASE": "LATENCY_INCREASE_BLOCK",
-        "PII_BLOCK_EMAIL": "PII_EMAIL_BLOCK",
-        "PII_BLOCK_PHONE": "PII_PHONE_BLOCK",
-        "PII_BLOCK_CREDIT_CARD": "PII_CREDIT_CARD_BLOCK",
-        "PII_BLOCK_SSN": "PII_SSN_BLOCK",
-        "DRIFT_BLOCK_EMPTY": "DRIFT_EMPTY_OUTPUT_WARN",
-        "DRIFT_WARN_SHORT_OUTPUT": "DRIFT_TOO_SHORT_WARN",
-        "DRIFT_WARN_LENGTH_DELTA": "DRIFT_LENGTH_WARN",
-        "DRIFT_WARN_LOW_SIMILARITY": "DRIFT_SIMILARITY_WARN",
-        "STRICT_PROMOTED_WARN": "STRICT_MODE_PROMOTION_BLOCK",
-    }
-    return mapping.get(code, code)
+    return INTERNAL_TO_DECISION.get(code, code)
 
 
 def _extract_metrics(details: dict) -> dict:

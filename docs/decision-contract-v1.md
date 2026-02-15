@@ -50,6 +50,9 @@ This document defines the deterministic output contract for BreakPoint decisions
 - `metrics` (`object`, optional): normalized numeric metrics used to derive policy decisions.
 - `metadata` (`object`, optional): normalized runtime context and input annotations.
 
+Additional metadata fields (optional):
+- `waivers_applied` (`array[object]`, optional): list of applied waivers with `reason_code`, `expires_at`, and audit fields.
+
 ## Determinism Rules
 
 - Same normalized inputs must produce byte-equivalent JSON output.

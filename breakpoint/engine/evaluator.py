@@ -4,6 +4,12 @@ from breakpoint.engine.policies.cost import evaluate_cost_policy
 from breakpoint.engine.policies.drift import evaluate_drift_policy
 from breakpoint.engine.policies.latency import evaluate_latency_policy
 from breakpoint.engine.policies.pii import evaluate_pii_policy
+from breakpoint.engine.waivers import (
+    Waiver,
+    apply_waivers_to_policy_results,
+    parse_evaluation_time,
+    parse_waivers,
+)
 from breakpoint.models.decision import Decision
 
 
@@ -18,10 +24,11 @@ def evaluate(
     config_environment: str | None = None,
 ) -> Decision:
     config = load_config(config_path, environment=config_environment)
+    metadata_input = metadata or {}
     baseline_record, candidate_record = _normalize_inputs(
         baseline_output=baseline_output,
         candidate_output=candidate_output,
-        metadata=metadata or {},
+        metadata=metadata_input,
         baseline=baseline,
         candidate=candidate,
     )
@@ -50,8 +57,22 @@ def evaluate(
         ),
     ]
 
+    waivers = parse_waivers(config.get("waivers"))
+    applied_waivers: list[Waiver] = []
+    if waivers:
+        evaluation_time_raw = metadata_input.get("evaluation_time") or metadata_input.get("now")
+        if not isinstance(evaluation_time_raw, str) or not evaluation_time_raw.strip():
+            raise ValueError(
+                "Waivers are configured, but metadata.evaluation_time is required (ISO-8601). "
+                "CLI: pass --now. Python: pass metadata={'evaluation_time': '...'}"
+            )
+        evaluation_time = parse_evaluation_time(evaluation_time_raw)
+        policy_results, applied_waivers = apply_waivers_to_policy_results(
+            policy_results, waivers=waivers, evaluation_time=evaluation_time
+        )
+
     aggregated = aggregate_policy_results(policy_results, strict=strict)
-    metadata_payload = _decision_metadata(baseline_record, candidate_record, strict)
+    metadata_payload = _decision_metadata(baseline_record, candidate_record, strict, applied_waivers)
     return Decision(
         schema_version=aggregated.schema_version,
         status=aggregated.status,
@@ -113,12 +134,24 @@ def _apply_metadata_overrides(baseline: dict, candidate: dict, metadata: dict) -
             target[field_name] = value
 
 
-def _decision_metadata(baseline: dict, candidate: dict, strict: bool) -> dict:
+def _decision_metadata(baseline: dict, candidate: dict, strict: bool, applied_waivers: list[Waiver]) -> dict:
     metadata = {"strict": strict}
 
     if isinstance(baseline.get("model"), str):
         metadata["baseline_model"] = baseline["model"]
     if isinstance(candidate.get("model"), str):
         metadata["candidate_model"] = candidate["model"]
+
+    if applied_waivers:
+        metadata["waivers_applied"] = [
+            {
+                "reason_code": w.reason_code,
+                "expires_at": w.expires_at,
+                "reason": w.reason,
+                **({"ticket": w.ticket} if w.ticket else {}),
+                **({"issued_by": w.issued_by} if w.issued_by else {}),
+            }
+            for w in applied_waivers
+        ]
 
     return metadata
