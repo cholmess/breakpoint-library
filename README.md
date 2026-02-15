@@ -143,3 +143,4 @@ print(decision.reasons)
 - `docs/ci-templates.md`
 - `docs/value-metrics.md`
 - `docs/policy-presets.md`
+- `docs/release-gate-audit.md`

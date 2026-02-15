@@ -9,10 +9,10 @@ Make BreakPoint feel immediately necessary to indie developers by proving, in un
 
 ## Product Bar (Must Be True Before Publish)
 
-- [ ] A first-time user can run one command and see at least one concrete regression signal.
-- [ ] CLI output clearly answers: `What changed?`, `How bad?`, `What should I do next?`
-- [ ] README leads with pain and outcome, not architecture.
-- [ ] Demo includes realistic model/prompt change scenarios and returns `WARN` or `BLOCK` for clear reasons.
+- [x] A first-time user can run one command and see at least one concrete regression signal.
+- [x] CLI output clearly answers: `What changed?`, `How bad?`, `What should I do next?`
+- [x] README leads with pain and outcome, not architecture.
+- [x] Demo includes realistic model/prompt change scenarios and returns `WARN` or `BLOCK` for clear reasons.
 
 ## Scope Guardrails
 
@@ -32,11 +32,11 @@ Out of scope (for this phase):
 
 These must be surfaced by default with quantified deltas:
 
-- [ ] Cost spike (`%` and absolute estimate)
-- [ ] Output contract break (schema/format mismatch)
-- [ ] PII exposure (type + count)
-- [ ] Quality/content drift (summary or key-info loss proxy)
-- [ ] Verbosity drift (`tokens/chars`, ratio)
+- [x] Cost spike (`%` and absolute estimate)
+- [x] Output contract break (schema/format mismatch)
+- [x] PII exposure (type + count)
+- [x] Quality/content drift (summary or key-info loss proxy)
+- [x] Verbosity drift (`tokens/chars`, ratio)
 
 ## 3-Week Execution Plan
 
@@ -91,33 +91,33 @@ Target dates: 2026-03-02 to 2026-03-08
 
 Do not publish until all are checked:
 
-- [ ] Demo run shows at least one surprising/useful regression finding
-- [ ] CLI output includes quantified deltas (not just generic warnings)
-- [ ] JSON contract and exit codes are stable and tested
-- [ ] README includes 3 copy-paste examples with expected outcomes
-- [ ] No required configuration for first useful run
+- [x] Demo run shows at least one surprising/useful regression finding
+- [x] CLI output includes quantified deltas (not just generic warnings)
+- [x] JSON contract and exit codes are stable and tested
+- [x] README includes 3 copy-paste examples with expected outcomes
+- [x] No required configuration for first useful run
 
 ## Work Breakdown (Implementation)
 
 ## A. Output Experience
-- [ ] Standardize reason formatting and ranking
-- [ ] Add concise severity labels and thresholds in output
-- [ ] Ensure final line always includes action guidance
+- [x] Standardize reason formatting and ranking
+- [x] Add concise severity labels and thresholds in output
+- [x] Ensure final line always includes action guidance
 
 ## B. Detection Quality
-- [ ] Tune thresholds to reduce noisy WARNs
-- [ ] Add/validate format-break detector for common structured outputs
+- [x] Tune thresholds to reduce noisy WARNs
+- [x] Add/validate format-break detector for common structured outputs
 - [ ] Improve drift messaging from abstract to specific symptom
 
 ## C. Docs + Demo Assets
-- [ ] Create realistic baseline/candidate fixture pairs
-- [ ] Add before/after snippets to docs
-- [ ] Keep architecture section below quickstart/value proof
+- [x] Create realistic baseline/candidate fixture pairs
+- [x] Add before/after snippets to docs
+- [x] Keep architecture section below quickstart/value proof
 
 ## D. Verification
-- [ ] Golden tests for CLI output shape and reason ordering
-- [ ] Regression tests for each headline risk type
-- [ ] Smoke test for quickstart command path
+- [x] Golden tests for CLI output shape and reason ordering
+- [x] Regression tests for each headline risk type
+- [x] Smoke test for quickstart command path
 
 ## Success Metrics (First 30 Days Post-Release)
 
@@ -137,7 +137,7 @@ Do not publish until all are checked:
 
 ## Immediate Next Actions
 
-- [ ] Implement Week 1 CLI output spec in code
-- [ ] Build killer demo fixture set
-- [ ] Rewrite README opening + `Try in 60 seconds`
-- [ ] Add publish checklist status section to release process
+- [x] Implement Week 1 CLI output spec in code
+- [x] Build killer demo fixture set
+- [x] Rewrite README opening + `Try in 60 seconds`
+- [x] Add publish checklist status section to release process
