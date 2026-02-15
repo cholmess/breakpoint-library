@@ -53,7 +53,7 @@ def test_drift_blocks_empty_candidate():
 def test_strict_promotes_warn_to_block():
     decision = evaluate(
         baseline={"output": "abc", "cost_usd": 1.0},
-        candidate={"output": "abcdef", "cost_usd": 1.24},
+        candidate={"output": "abc", "cost_usd": 1.24},
         strict=True,
     )
     assert decision.status == "BLOCK"
@@ -157,7 +157,7 @@ def test_output_contract_warns_on_type_mismatch():
 def test_default_drift_tuning_reduces_moderate_length_noise():
     decision = evaluate(
         baseline={"output": "a" * 100, "cost_usd": 1.0, "latency_ms": 100},
-        candidate={"output": "a" * 165, "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "a" * 130, "cost_usd": 1.0, "latency_ms": 100},
     )
     assert decision.status == "ALLOW"
 

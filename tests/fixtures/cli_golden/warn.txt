@@ -9,11 +9,11 @@ Policy Results:
 ✓ Response format: No schema drift detected.
 ⚠ Cost: Delta +25.00%.
 ⚠ Latency: Delta +35.00%.
-✓ Output drift: No issues.
+⚠ Output drift: Length delta +52.17%, similarity 0.400000.
 
 Summary:
-Cost increased by 25.0% (>15%).
-1 additional signal(s) detected.
+Cost increased by 25.0% (>=20%).
+2 additional signal(s) detected.
 
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -30,7 +30,7 @@ def test_cli_evaluate_json_output(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
     baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -58,7 +58,7 @@ def test_cli_strict_blocks(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
     baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -120,7 +120,7 @@ def test_cli_text_output_has_deterministic_summary_order(tmp_path):
     assert lines[policy_results_index + 2].startswith("✓ Response format:")
     assert lines[policy_results_index + 3].startswith("✗ Cost:")
     assert lines[policy_results_index + 4].startswith("✓ Latency:")
-    assert lines[policy_results_index + 5].startswith("⚠ Output drift:")
+    assert lines[policy_results_index + 5].startswith("✗ Output drift:")
     assert lines[-2] == "Exit Code: 0"
     assert lines[-1] == "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -198,7 +198,7 @@ def test_cli_block_summary_lists_all_blocking_reasons():
     )
 
     assert result.returncode == 0
-    assert "- Cost increased by 40.0% (>35%)." in result.stdout
+    assert "- Cost increased by 40.0% (>=40%)." in result.stdout
     assert "- Latency increased by 70.0% (>60%)." in result.stdout
     assert "- PII detected: EMAIL(1). Total matches: 1." in result.stdout
     assert "1 additional non-blocking signal(s) detected." in result.stdout
@@ -258,7 +258,7 @@ def test_cli_exit_codes_enabled(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
     baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -283,7 +283,7 @@ def test_cli_combined_input_single_file(tmp_path):
         json.dumps(
             {
                 "baseline": {"output": "hello", "cost_usd": 1.0},
-                "candidate": {"output": "hello world", "cost_usd": 1.25},
+                "candidate": {"output": "hello", "cost_usd": 1.25},
             }
         ),
         encoding="utf-8",
@@ -300,7 +300,7 @@ def test_cli_combined_input_single_file(tmp_path):
 
 def test_cli_stdin_input(tmp_path):
     candidate_path = tmp_path / "candidate.json"
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -354,7 +354,7 @@ def test_cli_fail_on_block_does_not_fail_warn(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
     baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -405,7 +405,7 @@ def test_cli_fail_on_warn_fails_warn(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
     baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
-    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
 
     result = subprocess.run(
         [

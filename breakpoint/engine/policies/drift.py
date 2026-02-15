@@ -25,12 +25,21 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
     short_ratio = candidate_len / baseline_len
 
     warn_delta = float(thresholds.get("warn_length_delta_pct", 60))
+    block_delta = float(thresholds.get("block_length_delta_pct", 70))
     warn_short_ratio = float(thresholds.get("warn_short_ratio", 0.35))
     min_similarity = float(thresholds.get("warn_min_similarity", 0.15))
     semantic_enabled = bool(thresholds.get("semantic_check_enabled", True))
     similarity_method = str(thresholds.get("similarity_method", "max(token_jaccard,char_3gram_jaccard)"))
 
-    if delta_pct > warn_delta:
+    if delta_pct >= block_delta:
+        direction = "expanded" if candidate_len > baseline_len else "compressed"
+        reasons.append(
+            f"Response length {direction}: baseline {baseline_len} chars vs candidate {candidate_len} chars "
+            f"({delta_pct:.1f}%, block threshold {block_delta:.0f}%)."
+        )
+        codes.append("DRIFT_BLOCK_LENGTH_DELTA")
+        details["length_delta_pct"] = delta_pct
+    elif delta_pct >= warn_delta:
         direction = "expanded" if candidate_len > baseline_len else "compressed"
         reasons.append(
             f"Response length {direction}: baseline {baseline_len} chars vs candidate {candidate_len} chars "
@@ -62,7 +71,8 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
             codes.append("DRIFT_WARN_LOW_SIMILARITY")
 
     if reasons:
-        return PolicyResult(policy="drift", status="WARN", reasons=reasons, codes=codes, details=details)
+        status = "BLOCK" if any(code.startswith("DRIFT_BLOCK_") for code in codes) else "WARN"
+        return PolicyResult(policy="drift", status=status, reasons=reasons, codes=codes, details=details)
     return PolicyResult(policy="drift", status="ALLOW", details=details)
 
 

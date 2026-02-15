@@ -1,5 +1,7 @@
 from breakpoint.engine.policies.base import PolicyResult
 
+_EPSILON = 1e-9
+
 
 def evaluate_cost_policy(
     baseline: dict, candidate: dict, thresholds: dict, pricing: dict
@@ -34,24 +36,28 @@ def evaluate_cost_policy(
     warn_delta_usd = float(thresholds.get("warn_delta_usd", 0.0))
     block_delta_usd = float(thresholds.get("block_delta_usd", 0.0))
 
-    if (block_delta_usd > 0 and delta_usd > block_delta_usd) or increase_pct > block_threshold:
+    if (block_delta_usd > 0 and _meets_or_exceeds(delta_usd, block_delta_usd)) or _meets_or_exceeds(
+        increase_pct, block_threshold
+    ):
         return PolicyResult(
             policy="cost",
             status="BLOCK",
             reasons=[
-                f"Cost increased by {increase_pct:.1f}% (>{block_threshold:.0f}%)."
-                + (f" Absolute delta ${delta_usd:.4f} (>{block_delta_usd:.4f})." if block_delta_usd > 0 else "")
+                f"Cost increased by {increase_pct:.1f}% (>={block_threshold:.0f}%)."
+                + (f" Absolute delta ${delta_usd:.4f} (>={block_delta_usd:.4f})." if block_delta_usd > 0 else "")
             ],
             codes=["COST_BLOCK_INCREASE"],
             details={"increase_pct": increase_pct, "delta_usd": delta_usd},
         )
-    if (warn_delta_usd > 0 and delta_usd > warn_delta_usd) or increase_pct > warn_threshold:
+    if (warn_delta_usd > 0 and _meets_or_exceeds(delta_usd, warn_delta_usd)) or _meets_or_exceeds(
+        increase_pct, warn_threshold
+    ):
         return PolicyResult(
             policy="cost",
             status="WARN",
             reasons=[
-                f"Cost increased by {increase_pct:.1f}% (>{warn_threshold:.0f}%)."
-                + (f" Absolute delta ${delta_usd:.4f} (>{warn_delta_usd:.4f})." if warn_delta_usd > 0 else "")
+                f"Cost increased by {increase_pct:.1f}% (>={warn_threshold:.0f}%)."
+                + (f" Absolute delta ${delta_usd:.4f} (>={warn_delta_usd:.4f})." if warn_delta_usd > 0 else "")
             ],
             codes=["COST_WARN_INCREASE"],
             details={"increase_pct": increase_pct, "delta_usd": delta_usd},
@@ -85,3 +91,7 @@ def _resolve_cost(record: dict, pricing: dict) -> float | None:
             return (float(tokens_total) / 1000) * float(per_1k)
 
     return None
+
+
+def _meets_or_exceeds(value: float, threshold: float) -> bool:
+    return value + _EPSILON >= threshold

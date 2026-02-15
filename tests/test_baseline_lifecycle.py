@@ -29,5 +29,5 @@ def test_baseline_rollback_changes_decision_with_sample_data():
     current_decision = evaluate(baseline=baseline_current["input"], candidate=candidate)
     previous_decision = evaluate(baseline=baseline_previous["input"], candidate=candidate)
 
-    assert current_decision.status == "WARN"
+    assert current_decision.status == "BLOCK"
     assert previous_decision.status == "ALLOW"

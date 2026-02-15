@@ -1,8 +1,8 @@
 {
   "cost_policy": {
     "min_baseline_cost_usd": 0.01,
-    "warn_increase_pct": 15,
-    "block_increase_pct": 35,
+    "warn_increase_pct": 20,
+    "block_increase_pct": 40,
     "warn_delta_usd": 0.0,
     "block_delta_usd": 0.0
   },
@@ -22,7 +22,8 @@
     "warn_on_type_mismatch": true
   },
   "drift_policy": {
-    "warn_length_delta_pct": 75,
+    "warn_length_delta_pct": 35,
+    "block_length_delta_pct": 70,
     "warn_short_ratio": 0.30,
     "warn_min_similarity": 0.10,
     "semantic_check_enabled": true,

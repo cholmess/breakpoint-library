@@ -9,8 +9,8 @@
   },
   "drift_policy": {
     "warn_length_delta_pct": 90,
+    "block_length_delta_pct": 110,
     "warn_short_ratio": 0.30,
     "warn_min_similarity": 0.12
   }
 }
-

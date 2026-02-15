@@ -136,6 +136,7 @@ def _validate_drift_thresholds(config: dict) -> None:
         raise ConfigValidationError("Config key 'drift_policy' must be a JSON object.")
 
     length_delta = drift.get("warn_length_delta_pct")
+    block_length_delta = drift.get("block_length_delta_pct")
     short_ratio = drift.get("warn_short_ratio")
     min_similarity = drift.get("warn_min_similarity")
 
@@ -143,6 +144,17 @@ def _validate_drift_thresholds(config: dict) -> None:
         raise ConfigValidationError("Config key 'drift_policy.warn_length_delta_pct' must be numeric.")
     if float(length_delta) < 0:
         raise ConfigValidationError("Config key 'drift_policy.warn_length_delta_pct' must be >= 0.")
+
+    if block_length_delta is None:
+        block_length_delta = length_delta
+    if not isinstance(block_length_delta, (int, float)):
+        raise ConfigValidationError("Config key 'drift_policy.block_length_delta_pct' must be numeric.")
+    if float(block_length_delta) < 0:
+        raise ConfigValidationError("Config key 'drift_policy.block_length_delta_pct' must be >= 0.")
+    if float(block_length_delta) < float(length_delta):
+        raise ConfigValidationError(
+            "Config key 'drift_policy.block_length_delta_pct' must be >= 'drift_policy.warn_length_delta_pct'."
+        )
 
     if not isinstance(short_ratio, (int, float)):
         raise ConfigValidationError("Config key 'drift_policy.warn_short_ratio' must be numeric.")
