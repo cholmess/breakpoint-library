@@ -206,9 +206,12 @@ P0-5 — 10-Minute Quickstart
 5. P0-5 10-Minute Quickstart
 
 #### Current Sprint Focus
-- In progress: P0-3 Baseline Lifecycle
-- Immediate next artifact: `docs/baseline-lifecycle.md`
-- First implementation target: reproducible baseline artifacts + rollback path with sample validation
+- Completed: P0-1 Decision Contract v1
+- Completed: P0-2 CI Gate Behavior
+- Completed: P0-3 Baseline Lifecycle
+- Completed: P0-4 Policy Calibration
+- Completed: P0-5 10-Minute Quickstart
+- Next focus: P1 CI templates and waivers
 
 ### P1 (High-value after P0)
 - Built-in CI templates (GitHub Actions + generic shell example)
