@@ -14,6 +14,8 @@ _METRIC_DISPLAY_ORDER = [
     "latency_delta_ms",
     "length_delta_pct",
     "short_ratio",
+    "pii_blocked_total",
+    "pii_blocked_type_count",
     "similarity",
 ]
 
@@ -24,6 +26,8 @@ _METRIC_LABELS = {
     "latency_delta_ms": "Latency delta ms",
     "length_delta_pct": "Length delta %",
     "short_ratio": "Short ratio",
+    "pii_blocked_total": "PII blocked total",
+    "pii_blocked_type_count": "PII blocked type count",
     "similarity": "Similarity",
 }
 
@@ -286,6 +290,8 @@ def _metric_lines(metrics: dict) -> list[str]:
 
 
 def _format_metric_value(key: str, value: float) -> str:
+    if key.endswith("_count") or key.endswith("_total"):
+        return str(int(value))
     if key.endswith("_pct"):
         return f"{value:+.2f}%"
     if key.endswith("_usd"):

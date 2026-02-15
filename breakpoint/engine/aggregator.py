@@ -63,4 +63,11 @@ def _extract_metrics(details: dict) -> dict:
     if isinstance(drift.get("similarity"), (int, float)):
         metrics["similarity"] = round(float(drift["similarity"]), 6)
 
+    pii = details.get("pii", {})
+    if isinstance(pii.get("blocked_total"), (int, float)):
+        metrics["pii_blocked_total"] = int(pii["blocked_total"])
+    type_counts = pii.get("blocked_type_counts")
+    if isinstance(type_counts, dict):
+        metrics["pii_blocked_type_count"] = len(type_counts)
+
     return metrics

@@ -18,10 +18,12 @@ def test_cost_warn_on_increase():
 def test_pii_blocks_email():
     decision = evaluate(
         baseline={"output": "hello"},
-        candidate={"output": "contact me at hi@example.com", "cost_usd": 1.0},
+        candidate={"output": "contact me at hi@example.com and alt@example.com", "cost_usd": 1.0},
     )
     assert decision.status == "BLOCK"
     assert "PII_EMAIL_BLOCK" in decision.reason_codes
+    assert decision.metrics["pii_blocked_total"] == 2
+    assert decision.metrics["pii_blocked_type_count"] == 1
 
 
 def test_pii_credit_card_uses_luhn_check():

@@ -109,6 +109,36 @@ def test_cli_text_output_has_deterministic_summary_order(tmp_path):
     ]
 
 
+def test_cli_text_output_shows_pii_counts(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(
+        json.dumps({"output": "contact me at hi@example.com and alt@example.com", "cost_usd": 1.0}),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "VERDICT: BLOCK" in result.stdout
+    assert "KEY_DELTAS:" in result.stdout
+    assert "- PII blocked total: 2" in result.stdout
+    assert "- PII blocked type count: 1" in result.stdout
+
+
 def test_cli_exit_codes_enabled(tmp_path):
     baseline_path = tmp_path / "baseline.json"
     candidate_path = tmp_path / "candidate.json"
