@@ -31,13 +31,18 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
     similarity_method = str(thresholds.get("similarity_method", "max(token_jaccard,char_3gram_jaccard)"))
 
     if delta_pct > warn_delta:
-        reasons.append(f"Output drift detected: length delta {delta_pct:.1f}% (>{warn_delta:.0f}%).")
+        direction = "expanded" if candidate_len > baseline_len else "compressed"
+        reasons.append(
+            f"Response length {direction} by {delta_pct:.1f}% (threshold {warn_delta:.0f}%)."
+        )
         codes.append("DRIFT_WARN_LENGTH_DELTA")
         details["length_delta_pct"] = delta_pct
 
     if short_ratio < warn_short_ratio:
+        shrink_pct = (1 - short_ratio) * 100
         reasons.append(
-            f"Output drift detected: candidate length ratio {short_ratio:.2f} (<{warn_short_ratio:.2f})."
+            f"Response appears over-compressed: {shrink_pct:.1f}% shorter than baseline "
+            f"(ratio {short_ratio:.2f}, threshold {warn_short_ratio:.2f})."
         )
         codes.append("DRIFT_WARN_SHORT_OUTPUT")
         details["short_ratio"] = short_ratio
@@ -48,7 +53,8 @@ def evaluate_drift_policy(baseline: dict, candidate: dict, thresholds: dict) -> 
         details["similarity_method"] = similarity_method
         if similarity < min_similarity:
             reasons.append(
-                f"Output drift detected: lexical similarity {similarity:.2f} (<{min_similarity:.2f})."
+                f"Response content overlap is low: similarity {similarity:.2f} "
+                f"(threshold {min_similarity:.2f})."
             )
             codes.append("DRIFT_WARN_LOW_SIMILARITY")
 
