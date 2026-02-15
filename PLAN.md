@@ -44,48 +44,48 @@ These must be surfaced by default with quantified deltas:
 Target dates: 2026-02-16 to 2026-02-22
 
 ### Deliverables
-- [ ] CLI summary block with deterministic structure:
-  - `VERDICT`
-  - `Top reasons`
-  - `Key deltas`
-  - `Recommended action`
-- [ ] High-signal text output with clear severity wording
-- [ ] JSON output parity with text output (same core facts)
+- [x] CLI summary block with deterministic structure:
+  - `Final Decision`
+  - `Policy Results`
+  - `Summary`
+  - `Exit Code`
+- [x] High-signal text output with clear severity wording
+- [x] JSON output parity with text output (same core facts)
 
 ### Definition of done
-- [ ] For identical input, output order/content is stable
-- [ ] A user can scan results in <30 seconds and identify the risk
-- [ ] At least one fixture produces `BLOCK` with obvious justification
+- [x] For identical input, output order/content is stable
+- [x] A user can scan results in <30 seconds and identify the risk
+- [x] At least one fixture produces `BLOCK` with obvious justification
 
 ## Week 2: Demo + Examples That Sell Value
 Target dates: 2026-02-23 to 2026-03-01
 
 ### Deliverables
-- [ ] One killer demo scenario (model swap + slight prompt tweak)
-- [ ] Three realistic examples with expected outputs:
+- [x] One killer demo scenario (model swap + slight prompt tweak)
+- [x] Three realistic examples with expected outputs:
   - Example A: cost regression
   - Example B: output format regression
   - Example C: PII + verbosity drift
-- [ ] Single command entry point (`make demo` or equivalent)
+- [x] Single command entry point (`make demo` or equivalent)
 
 ### Definition of done
-- [ ] Fresh clone to first meaningful signal in <5 minutes
-- [ ] Each example includes “why this matters in production”
-- [ ] At least 2 examples produce non-`ALLOW` outcomes
+- [x] Fresh clone to first meaningful signal in <5 minutes
+- [x] Each example includes “why this matters in production”
+- [x] At least 2 examples produce non-`ALLOW` outcomes
 
 ## Week 3: Packaging Narrative + Publish Gate
 Target dates: 2026-03-02 to 2026-03-08
 
 ### Deliverables
-- [ ] README rewrite with pain-first opening
-- [ ] `Try in 60 seconds` section near top
-- [ ] Minimal API documentation (only what users need to ship)
-- [ ] Publish checklist and release candidate validation pass
+- [x] README rewrite with pain-first opening
+- [x] `Try in 60 seconds` section near top
+- [x] Minimal API documentation (only what users need to ship)
+- [x] Publish checklist and release candidate validation pass
 
 ### Definition of done
-- [ ] README communicates value before architecture details
-- [ ] Install + run + interpret flow validated by a new user path
-- [ ] Publish decision uses objective checklist below
+- [x] README communicates value before architecture details
+- [x] Install + run + interpret flow validated by a new user path
+- [x] Publish decision uses objective checklist below
 
 ## Publish Checklist (Hard Gate)
 
@@ -107,7 +107,7 @@ Do not publish until all are checked:
 ## B. Detection Quality
 - [x] Tune thresholds to reduce noisy WARNs
 - [x] Add/validate format-break detector for common structured outputs
-- [ ] Improve drift messaging from abstract to specific symptom
+- [x] Improve drift messaging from abstract to specific symptom
 
 ## C. Docs + Demo Assets
 - [x] Create realistic baseline/candidate fixture pairs
@@ -137,7 +137,6 @@ Do not publish until all are checked:
 
 ## Immediate Next Actions
 
-- [x] Implement Week 1 CLI output spec in code
-- [x] Build killer demo fixture set
-- [x] Rewrite README opening + `Try in 60 seconds`
-- [x] Add publish checklist status section to release process
+- [ ] Cut and push `v0.2.0-rc2` tag
+- [ ] Publish release notes for `v0.2.0-rc2`
+- [ ] Run one external-user validation pass (fresh clone feedback)
