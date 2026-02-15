@@ -3,6 +3,7 @@ from breakpoint.engine.config import load_config
 from breakpoint.engine.policies.cost import evaluate_cost_policy
 from breakpoint.engine.policies.drift import evaluate_drift_policy
 from breakpoint.engine.policies.latency import evaluate_latency_policy
+from breakpoint.engine.policies.output_contract import evaluate_output_contract_policy
 from breakpoint.engine.policies.pii import evaluate_pii_policy
 from breakpoint.engine.waivers import (
     Waiver,
@@ -50,6 +51,11 @@ def evaluate(
             candidate=candidate_record,
             patterns=config["pii_policy"]["patterns"],
             allowlist=config["pii_policy"].get("allowlist", []),
+        ),
+        evaluate_output_contract_policy(
+            baseline=baseline_record,
+            candidate=candidate_record,
+            config=config.get("output_contract_policy", {}),
         ),
         evaluate_drift_policy(
             baseline=baseline_record,

@@ -18,7 +18,7 @@ echo "Repository: $ROOT_DIR"
 echo
 echo "Expected outcomes:"
 echo "- Scenario A (cost model swap): BLOCK"
-echo "- Scenario B (format regression): WARN"
+echo "- Scenario B (format regression): BLOCK"
 echo "- Scenario C (PII + verbosity): BLOCK"
 echo "- Scenario D (killer tradeoff): BLOCK"
 echo

@@ -70,4 +70,12 @@ def _extract_metrics(details: dict) -> dict:
     if isinstance(type_counts, dict):
         metrics["pii_blocked_type_count"] = len(type_counts)
 
+    output_contract = details.get("output_contract", {})
+    if isinstance(output_contract.get("invalid_json_count"), (int, float)):
+        metrics["output_contract_invalid_json_count"] = int(output_contract["invalid_json_count"])
+    if isinstance(output_contract.get("missing_keys_count"), (int, float)):
+        metrics["output_contract_missing_keys_count"] = int(output_contract["missing_keys_count"])
+    if isinstance(output_contract.get("type_mismatches_count"), (int, float)):
+        metrics["output_contract_type_mismatch_count"] = int(output_contract["type_mismatches_count"])
+
     return metrics

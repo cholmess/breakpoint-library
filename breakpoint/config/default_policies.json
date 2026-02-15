@@ -15,6 +15,12 @@
     },
     "allowlist": []
   },
+  "output_contract_policy": {
+    "enabled": true,
+    "block_on_invalid_json": true,
+    "warn_on_missing_keys": true,
+    "warn_on_type_mismatch": true
+  },
   "drift_policy": {
     "warn_length_delta_pct": 60,
     "warn_short_ratio": 0.35,

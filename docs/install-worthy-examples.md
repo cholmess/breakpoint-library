@@ -36,7 +36,7 @@ Command:
 breakpoint evaluate examples/install_worthy/baseline.json examples/install_worthy/candidate_format_regression.json
 ```
 
-Expected status: `WARN`
+Expected status: `BLOCK`
 
 Why this matters:
 - Candidate output drops expected structure and shrinks too far from baseline behavior.

@@ -12,7 +12,7 @@ make demo
 
 What you should see:
 - Scenario A: `BLOCK` (cost spike)
-- Scenario B: `WARN` (format/behavior regression)
+- Scenario B: `BLOCK` (format/contract regression)
 - Scenario C: `BLOCK` (PII + verbosity drift)
 - Scenario D: `BLOCK` (cost/latency/verbosity tradeoff)
 
@@ -36,7 +36,7 @@ Why it matters: output appears equivalent, but cost increases enough to violate 
 breakpoint evaluate examples/install_worthy/baseline.json examples/install_worthy/candidate_format_regression.json
 ```
 
-Expected: `WARN`
+Expected: `BLOCK`
 Why it matters: candidate drops expected structure and drifts from baseline behavior.
 
 ### 3) PII appears in candidate output

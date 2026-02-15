@@ -16,6 +16,9 @@ _METRIC_DISPLAY_ORDER = [
     "short_ratio",
     "pii_blocked_total",
     "pii_blocked_type_count",
+    "output_contract_invalid_json_count",
+    "output_contract_missing_keys_count",
+    "output_contract_type_mismatch_count",
     "similarity",
 ]
 
@@ -28,6 +31,9 @@ _METRIC_LABELS = {
     "short_ratio": "Short ratio",
     "pii_blocked_total": "PII blocked total",
     "pii_blocked_type_count": "PII blocked type count",
+    "output_contract_invalid_json_count": "Output contract invalid JSON count",
+    "output_contract_missing_keys_count": "Output contract missing keys count",
+    "output_contract_type_mismatch_count": "Output contract type mismatch count",
     "similarity": "Similarity",
 }
 

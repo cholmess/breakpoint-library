@@ -22,8 +22,8 @@ def test_install_worthy_examples_are_reproducible():
     assert cost_model_swap.status == "BLOCK"
     assert "COST_INCREASE_BLOCK" in cost_model_swap.reason_codes
 
-    assert format_regression.status == "WARN"
-    assert "DRIFT_LENGTH_WARN" in format_regression.reason_codes
+    assert format_regression.status == "BLOCK"
+    assert "OUTPUT_CONTRACT_INVALID_JSON_BLOCK" in format_regression.reason_codes
 
     assert pii_verbosity.status == "BLOCK"
     assert "PII_EMAIL_BLOCK" in pii_verbosity.reason_codes

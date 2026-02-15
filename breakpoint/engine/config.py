@@ -107,6 +107,7 @@ def _validate_config(config: dict) -> None:
     _validate_policy_thresholds(config, policy="cost_policy")
     _validate_policy_thresholds(config, policy="latency_policy")
     _validate_drift_thresholds(config)
+    _validate_output_contract_policy(config)
     parse_waivers(config.get("waivers"))
 
 
@@ -152,3 +153,14 @@ def _validate_drift_thresholds(config: dict) -> None:
         raise ConfigValidationError("Config key 'drift_policy.warn_min_similarity' must be numeric.")
     if not 0 <= float(min_similarity) <= 1:
         raise ConfigValidationError("Config key 'drift_policy.warn_min_similarity' must be in [0, 1].")
+
+
+def _validate_output_contract_policy(config: dict) -> None:
+    policy = config.get("output_contract_policy", {})
+    if not isinstance(policy, dict):
+        raise ConfigValidationError("Config key 'output_contract_policy' must be a JSON object.")
+
+    for key in ("enabled", "block_on_invalid_json", "warn_on_missing_keys", "warn_on_type_mismatch"):
+        value = policy.get(key)
+        if not isinstance(value, bool):
+            raise ConfigValidationError(f"Config key 'output_contract_policy.{key}' must be boolean.")
