@@ -7,6 +7,26 @@ from breakpoint.engine.config import available_presets, load_config
 from breakpoint.engine.metrics import summarize_decisions
 from breakpoint.engine.evaluator import evaluate
 
+_METRIC_DISPLAY_ORDER = [
+    "cost_delta_pct",
+    "cost_delta_usd",
+    "latency_delta_pct",
+    "latency_delta_ms",
+    "length_delta_pct",
+    "short_ratio",
+    "similarity",
+]
+
+_METRIC_LABELS = {
+    "cost_delta_pct": "Cost delta %",
+    "cost_delta_usd": "Cost delta USD",
+    "latency_delta_pct": "Latency delta %",
+    "latency_delta_ms": "Latency delta ms",
+    "length_delta_pct": "Length delta %",
+    "short_ratio": "Short ratio",
+    "similarity": "Similarity",
+}
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="breakpoint")
@@ -130,9 +150,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             fail_on=args.fail_on,
         )
 
-    print(f"STATUS: {decision.status}")
-    for reason in decision.reasons:
-        print(f"- {reason}")
+    _print_text_decision(decision)
     return _result_exit_code(
         status=decision.status,
         exit_codes_enabled=args.exit_codes,
@@ -230,6 +248,62 @@ def _result_exit_code(status: str, exit_codes_enabled: bool, fail_on: str | None
     if threshold == "block":
         return _exit_code(normalized) if normalized == "BLOCK" else 0
     return 0
+
+
+def _print_text_decision(decision) -> None:
+    print(f"VERDICT: {decision.status}")
+
+    print("TOP_REASONS:")
+    if decision.reasons:
+        for reason in decision.reasons:
+            print(f"- {reason}")
+    else:
+        print("- None")
+
+    print("KEY_DELTAS:")
+    delta_lines = _metric_lines(decision.metrics)
+    if delta_lines:
+        for line in delta_lines:
+            print(f"- {line}")
+    else:
+        print("- None")
+
+    print(f"RECOMMENDED_ACTION: {_recommended_action(decision.status)}")
+
+
+def _metric_lines(metrics: dict) -> list[str]:
+    if not isinstance(metrics, dict):
+        return []
+
+    lines: list[str] = []
+    for key in _METRIC_DISPLAY_ORDER:
+        value = metrics.get(key)
+        if not isinstance(value, (int, float)):
+            continue
+        label = _METRIC_LABELS.get(key, key)
+        lines.append(f"{label}: {_format_metric_value(key, float(value))}")
+    return lines
+
+
+def _format_metric_value(key: str, value: float) -> str:
+    if key.endswith("_pct"):
+        return f"{value:+.2f}%"
+    if key.endswith("_usd"):
+        return f"{value:+.6f}"
+    if key.endswith("_ms"):
+        return f"{value:+.2f}"
+    return f"{value:.6f}"
+
+
+def _recommended_action(status: str) -> str:
+    normalized = status.upper()
+    if normalized == "ALLOW":
+        return "Safe to ship."
+    if normalized == "WARN":
+        return "Ship with review."
+    if normalized == "BLOCK":
+        return "Stop deploy and investigate."
+    return "Review result."
 
 
 if __name__ == "__main__":

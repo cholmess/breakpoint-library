@@ -53,7 +53,60 @@ def test_cli_strict_blocks(tmp_path):
     )
 
     assert result.returncode == 0
-    assert "STATUS: BLOCK" in result.stdout
+    assert "VERDICT: BLOCK" in result.stdout
+    assert "TOP_REASONS:" in result.stdout
+    assert "KEY_DELTAS:" in result.stdout
+    assert "RECOMMENDED_ACTION: Stop deploy and investigate." in result.stdout
+
+
+def test_cli_text_output_has_deterministic_summary_order(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(
+        json.dumps({"output": "hello world", "cost_usd": 1.0, "latency_ms": 100}),
+        encoding="utf-8",
+    )
+    candidate_path.write_text(
+        json.dumps({"output": "hello world expanded", "cost_usd": 1.4, "latency_ms": 160}),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    lines = [line for line in result.stdout.splitlines() if line.strip()]
+    assert lines[0] == "VERDICT: BLOCK"
+    assert lines[1] == "TOP_REASONS:"
+    assert "KEY_DELTAS:" in lines
+    assert "RECOMMENDED_ACTION: Stop deploy and investigate." in lines
+
+    key_deltas_index = lines.index("KEY_DELTAS:")
+    deltas = []
+    for line in lines[key_deltas_index + 1 :]:
+        if line.startswith("RECOMMENDED_ACTION:"):
+            break
+        if line.startswith("- "):
+            deltas.append(line)
+    assert deltas == [
+        "- Cost delta %: +40.00%",
+        "- Cost delta USD: +0.400000",
+        "- Latency delta %: +60.00%",
+        "- Latency delta ms: +60.00",
+        "- Length delta %: +81.82%",
+        "- Similarity: 0.666667",
+    ]
 
 
 def test_cli_exit_codes_enabled(tmp_path):
