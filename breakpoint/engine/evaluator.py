@@ -101,6 +101,8 @@ def evaluate(
         strict_effective,
         applied_waivers,
         mode=normalized_mode,
+        accepted_risks=accepted_risks,
+        metadata_input=metadata_input,
     )
     return Decision(
         schema_version=aggregated.schema_version,
@@ -169,6 +171,8 @@ def _decision_metadata(
     strict: bool,
     applied_waivers: list[Waiver],
     mode: str,
+    accepted_risks: list[str] | None,
+    metadata_input: dict,
 ) -> dict:
     metadata = {"strict": strict, "mode": mode}
 
@@ -188,6 +192,28 @@ def _decision_metadata(
             }
             for w in applied_waivers
         ]
+
+    if mode == "lite":
+        risks = sorted(
+            {
+                item.strip().lower()
+                for item in (accepted_risks or [])
+                if isinstance(item, str) and item.strip()
+            }
+        )
+        if risks:
+            metadata["accepted_risks"] = risks
+
+    project_key = metadata_input.get("project_key")
+    if isinstance(project_key, str) and project_key.strip():
+        metadata["project_key"] = project_key.strip()
+
+    run_id = metadata_input.get("run_id")
+    if isinstance(run_id, str) and run_id.strip():
+        metadata["run_id"] = run_id.strip()
+
+    if metadata_input.get("ci") is True:
+        metadata["ci"] = True
 
     return metadata
 

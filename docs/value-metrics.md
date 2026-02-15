@@ -10,6 +10,11 @@ Core pipeline metrics:
 - `block_rate`: BLOCK / total
 - `top_reason_codes`: which rules fire most often
 - `waiver_rate`: waivers applied / total
+- `mode_mix`: lite vs full usage counts
+- `override_rate`: decisions with explicit `accepted_risks` / total
+- `override_risk_mix`: accepted risk types (`cost`, `pii`, `drift`)
+- `ci_decision_rate`: decisions tagged as CI / total
+- `repeat_project_rate`: projects with >=2 decisions / unique projects
 
 Outcome metrics (requires human/system feedback):
 
@@ -21,19 +26,20 @@ Outcome metrics (requires human/system feedback):
 Current defaults are calibrated for early signal while keeping `BLOCK` conservative:
 
 - Cost:
-  - `warn_increase_pct`: `15`
-  - `block_increase_pct`: `35`
+  - `warn_increase_pct`: `20`
+  - `block_increase_pct`: `40`
   - `warn_delta_usd`: `0.0`
   - `block_delta_usd`: `0.0`
-- Latency:
-  - `warn_increase_pct`: `25`
-  - `block_increase_pct`: `60`
-  - `warn_delta_ms`: `0.0`
-  - `block_delta_ms`: `0.0`
 - Drift:
-  - `warn_length_delta_pct`: `75`
+  - `warn_length_delta_pct`: `35`
+  - `block_length_delta_pct`: `70`
   - `warn_short_ratio`: `0.30`
-  - `warn_min_similarity`: `0.10`
+- PII:
+  - first detection (email/phone/credit card) => `BLOCK`
+- Full mode only:
+  - latency policy
+  - output contract policy
+  - waivers/presets/config strict mode
 
 Rationale:
 - `WARN` should appear earlier for meaningful regressions.
@@ -65,7 +71,19 @@ Notes:
 
 - Summary reads BreakPoint decision JSON (contract fields `schema_version`, `status`, `reasons`, `reason_codes`).
 - If `metadata.waivers_applied` exists, it is counted as waiver usage.
-- JSON output fields include: `total`, `by_schema_version`, `by_status`, `reason_code_counts`, `waivers_applied_total`, `waived_reason_code_counts`.
+- JSON output fields include:
+  - `total`, `by_schema_version`, `by_status`
+  - `reason_code_counts`, `waivers_applied_total`, `waived_reason_code_counts`
+  - `mode_counts`, `override_decision_total`, `override_risk_counts`
+  - `ci_decision_total`, `unique_project_total`, `repeat_project_total`
+
+To enrich KPI summaries at decision time:
+
+```bash
+breakpoint evaluate baseline.json candidate.json --json --project-key my-repo --run-id build-123
+```
+
+`ci` metadata is auto-tagged when `CI=true` or `GITHUB_ACTIONS=true`.
 
 ## Joining To Feedback (Optional)
 

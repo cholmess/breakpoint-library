@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import sys
 
 from breakpoint.engine.errors import ConfigValidationError
@@ -96,6 +97,14 @@ def main() -> int:
         "--now",
         help="Evaluation time for waiver expiry checks (ISO-8601, e.g. 2026-02-15T00:00:00Z).",
     )
+    evaluate_parser.add_argument(
+        "--project-key",
+        help="Optional project identifier to include in decision metadata (for KPI summaries).",
+    )
+    evaluate_parser.add_argument(
+        "--run-id",
+        help="Optional run identifier to include in decision metadata (for joining external analytics).",
+    )
 
     config_parser = subparsers.add_parser("config", help="Inspect BreakPoint configuration.")
     config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
@@ -156,7 +165,7 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             mode=args.mode,
             config_path=args.config,
             config_environment=args.env,
-            metadata={"evaluation_time": args.now} if args.now else None,
+            metadata=_evaluation_metadata(args),
             preset=args.preset,
             accepted_risks=list(args.accept_risk),
         )
@@ -261,7 +270,36 @@ def _run_metrics_summarize(args: argparse.Namespace) -> int:
             print("TOP_WAIVED_REASON_CODES:")
             for code, count in waived[:20]:
                 print(f"- {code}: {count}")
+    print("MODE_COUNTS:")
+    for key in sorted(payload["mode_counts"].keys()):
+        print(f"- {key}: {payload['mode_counts'][key]}")
+    print(f"OVERRIDE_DECISION_TOTAL: {payload['override_decision_total']}")
+    print("OVERRIDE_RISK_COUNTS:")
+    for key in sorted(payload["override_risk_counts"].keys()):
+        print(f"- {key}: {payload['override_risk_counts'][key]}")
+    print(f"CI_DECISION_TOTAL: {payload['ci_decision_total']}")
+    print(f"UNIQUE_PROJECT_TOTAL: {payload['unique_project_total']}")
+    print(f"REPEAT_PROJECT_TOTAL: {payload['repeat_project_total']}")
     return 0
+
+
+def _evaluation_metadata(args: argparse.Namespace) -> dict | None:
+    payload: dict[str, object] = {}
+    if args.now:
+        payload["evaluation_time"] = args.now
+    if args.project_key:
+        payload["project_key"] = args.project_key
+    if args.run_id:
+        payload["run_id"] = args.run_id
+    if _is_ci_environment():
+        payload["ci"] = True
+    return payload or None
+
+
+def _is_ci_environment() -> bool:
+    ci = str(os.environ.get("CI", "")).strip().lower()
+    gha = str(os.environ.get("GITHUB_ACTIONS", "")).strip().lower()
+    return ci in {"1", "true", "yes"} or gha in {"1", "true", "yes"}
 
 
 def _read_json(path: str, stdin_cache: dict[str, str]) -> dict:

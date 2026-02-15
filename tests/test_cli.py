@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -682,6 +683,67 @@ def test_cli_lite_accept_risk_creates_no_artifacts(tmp_path):
     assert result.returncode == 0
     after = {p.name for p in tmp_path.iterdir()}
     assert after == before
+
+
+def test_cli_evaluate_includes_project_and_run_metadata(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--json",
+            "--project-key",
+            "proj-123",
+            "--run-id",
+            "run-abc",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["metadata"]["project_key"] == "proj-123"
+    assert payload["metadata"]["run_id"] == "run-abc"
+
+
+def test_cli_evaluate_sets_ci_metadata_from_environment(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
+
+    env = dict(os.environ)
+    env["CI"] = "true"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["metadata"]["ci"] is True
 
 
 def test_cli_config_print_with_env_applies_overrides(tmp_path):

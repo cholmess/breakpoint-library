@@ -15,6 +15,12 @@ class MetricsSummary:
     reason_code_counts: dict[str, int]
     waived_reason_code_counts: dict[str, int]
     waivers_applied_total: int
+    mode_counts: dict[str, int]
+    override_decision_total: int
+    override_risk_counts: dict[str, int]
+    ci_decision_total: int
+    unique_project_total: int
+    repeat_project_total: int
 
     def to_dict(self) -> dict:
         return {
@@ -24,6 +30,12 @@ class MetricsSummary:
             "reason_code_counts": dict(sorted(self.reason_code_counts.items())),
             "waived_reason_code_counts": dict(sorted(self.waived_reason_code_counts.items())),
             "waivers_applied_total": self.waivers_applied_total,
+            "mode_counts": dict(sorted(self.mode_counts.items())),
+            "override_decision_total": self.override_decision_total,
+            "override_risk_counts": dict(sorted(self.override_risk_counts.items())),
+            "ci_decision_total": self.ci_decision_total,
+            "unique_project_total": self.unique_project_total,
+            "repeat_project_total": self.repeat_project_total,
         }
 
 
@@ -34,6 +46,11 @@ def summarize_decisions(paths: list[str]) -> MetricsSummary:
     reason_code_counts: dict[str, int] = {}
     waived_reason_code_counts: dict[str, int] = {}
     waivers_applied_total = 0
+    mode_counts: dict[str, int] = {}
+    override_decision_total = 0
+    override_risk_counts: dict[str, int] = {}
+    ci_decision_total = 0
+    project_counts: dict[str, int] = {}
 
     for path in file_paths:
         payload = _read_json(path)
@@ -50,6 +67,30 @@ def summarize_decisions(paths: list[str]) -> MetricsSummary:
                 reason_code_counts[code] = reason_code_counts.get(code, 0) + 1
 
         metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {}
+
+        mode = metadata.get("mode")
+        if isinstance(mode, str) and mode.strip():
+            mode_counts[mode.strip().lower()] = mode_counts.get(mode.strip().lower(), 0) + 1
+
+        accepted_risks = metadata.get("accepted_risks")
+        if isinstance(accepted_risks, list):
+            normalized_risks = []
+            for item in accepted_risks:
+                if isinstance(item, str) and item.strip():
+                    normalized_risks.append(item.strip().lower())
+            if normalized_risks:
+                override_decision_total += 1
+                for risk in sorted(set(normalized_risks)):
+                    override_risk_counts[risk] = override_risk_counts.get(risk, 0) + 1
+
+        if metadata.get("ci") is True:
+            ci_decision_total += 1
+
+        project_key = metadata.get("project_key")
+        if isinstance(project_key, str) and project_key.strip():
+            key = project_key.strip()
+            project_counts[key] = project_counts.get(key, 0) + 1
+
         waivers = metadata.get("waivers_applied", [])
         if isinstance(waivers, list) and waivers:
             waivers_applied_total += len(waivers)
@@ -67,6 +108,12 @@ def summarize_decisions(paths: list[str]) -> MetricsSummary:
         reason_code_counts=reason_code_counts,
         waived_reason_code_counts=waived_reason_code_counts,
         waivers_applied_total=waivers_applied_total,
+        mode_counts=mode_counts,
+        override_decision_total=override_decision_total,
+        override_risk_counts=override_risk_counts,
+        ci_decision_total=ci_decision_total,
+        unique_project_total=len(project_counts),
+        repeat_project_total=sum(1 for count in project_counts.values() if count >= 2),
     )
 
 
