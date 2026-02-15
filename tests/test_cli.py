@@ -751,7 +751,7 @@ def test_cli_config_print_with_env_applies_overrides(tmp_path):
     config_path.write_text(
         json.dumps(
             {
-                "cost_policy": {"warn_increase_pct": 20, "block_increase_pct": 35},
+                "cost_policy": {"warn_increase_pct": 20, "block_increase_pct": 40},
                 "environments": {
                     "dev": {"cost_policy": {"warn_increase_pct": 5, "block_increase_pct": 10}},
                 },

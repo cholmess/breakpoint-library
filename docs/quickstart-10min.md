@@ -49,6 +49,7 @@ Use environment-aware policy thresholds:
 breakpoint evaluate \
   examples/quickstart/baseline.json \
   examples/quickstart/candidate_warn.json \
+  --mode full \
   --config examples/quickstart/custom_policy.json \
   --env dev \
   --json

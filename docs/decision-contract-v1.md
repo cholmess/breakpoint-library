@@ -36,7 +36,8 @@ This document defines the deterministic output contract for BreakPoint decisions
   "metadata": {
     "baseline_model": "gpt-4o-mini",
     "candidate_model": "gpt-4.1-mini",
-    "strict": false
+    "strict": false,
+    "mode": "lite"
   }
 }
 ```
@@ -52,6 +53,10 @@ This document defines the deterministic output contract for BreakPoint decisions
 
 Additional metadata fields (optional):
 - `waivers_applied` (`array[object]`, optional): list of applied waivers with `reason_code`, `expires_at`, and audit fields.
+- `accepted_risks` (`array[string]`, optional): one-shot Lite override risks accepted for this run.
+- `project_key` (`string`, optional): project identifier for KPI aggregation.
+- `run_id` (`string`, optional): run/build identifier for external joins.
+- `ci` (`boolean`, optional): true when evaluation ran in CI context.
 
 ## Determinism Rules
 
@@ -80,6 +85,7 @@ Drift policy:
 - `DRIFT_EMPTY_OUTPUT_BLOCK`
 - `DRIFT_TOO_SHORT_WARN`
 - `DRIFT_LENGTH_WARN`
+- `DRIFT_LENGTH_BLOCK`
 - `DRIFT_SIMILARITY_WARN`
 
 Aggregator/system:
