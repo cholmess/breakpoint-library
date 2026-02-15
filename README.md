@@ -1,22 +1,54 @@
 # BreakPoint Library
 
-Local-first policy engine to compare baseline vs candidate LLM outputs and return `ALLOW`, `WARN`, or `BLOCK`.
+Model or prompt changes can silently increase cost, leak PII, or break output behavior.
+BreakPoint is a local-first gate that compares baseline vs candidate outputs and returns a deterministic verdict: `ALLOW`, `WARN`, or `BLOCK`.
 
-## Quickstart
+## Try In 60 Seconds
 
 ```bash
 pip install -e .
-breakpoint evaluate baseline.json candidate.json
-```
-
-Run the install-worthy demo scenarios in one command:
-
-```bash
 make demo
 ```
 
-Detailed 10-minute walkthrough:
-- `docs/quickstart-10min.md`
+What you should see:
+- Scenario A: `BLOCK` (cost spike)
+- Scenario B: `WARN` (format/behavior regression)
+- Scenario C: `BLOCK` (PII + verbosity drift)
+- Scenario D: `BLOCK` (cost/latency/verbosity tradeoff)
+
+## Three Realistic Examples
+
+Baseline for all examples:
+- `examples/install_worthy/baseline.json`
+
+### 1) Cost regression after model swap
+
+```bash
+breakpoint evaluate examples/install_worthy/baseline.json examples/install_worthy/candidate_cost_model_swap.json
+```
+
+Expected: `BLOCK`
+Why it matters: output appears equivalent, but cost increases enough to violate policy.
+
+### 2) Structured-output behavior regression
+
+```bash
+breakpoint evaluate examples/install_worthy/baseline.json examples/install_worthy/candidate_format_regression.json
+```
+
+Expected: `WARN`
+Why it matters: candidate drops expected structure and drifts from baseline behavior.
+
+### 3) PII appears in candidate output
+
+```bash
+breakpoint evaluate examples/install_worthy/baseline.json examples/install_worthy/candidate_pii_verbosity.json
+```
+
+Expected: `BLOCK`
+Why it matters: candidate introduces PII and adds verbosity drift.
+
+More scenario details:
 - `docs/install-worthy-examples.md`
 
 ## CLI
@@ -33,18 +65,13 @@ Evaluate a single combined JSON file:
 breakpoint evaluate payload.json
 ```
 
-Emit JSON and non-zero exit codes (useful for CI):
+JSON output for CI/parsing:
 
 ```bash
-breakpoint evaluate baseline.json candidate.json --json --exit-codes
+breakpoint evaluate baseline.json candidate.json --json
 ```
 
-Exit codes:
-- `0` = `ALLOW`
-- `1` = `WARN`
-- `2` = `BLOCK`
-
-Gate threshold options:
+Exit-code gating options:
 
 ```bash
 # fail on WARN or BLOCK
@@ -54,13 +81,18 @@ breakpoint evaluate baseline.json candidate.json --fail-on warn
 breakpoint evaluate baseline.json candidate.json --fail-on block
 ```
 
+Stable exit codes:
+- `0` = `ALLOW`
+- `1` = `WARN`
+- `2` = `BLOCK`
+
 Waivers (suppressions):
 
 ```bash
 breakpoint evaluate baseline.json candidate.json --config policy.json --now 2026-02-15T00:00:00Z --json
 ```
 
-Print the effective (merged) config:
+Config inspection:
 
 ```bash
 breakpoint config print
@@ -68,31 +100,19 @@ breakpoint config print --config custom_policy.json
 breakpoint config print --config custom_policy.json --env dev
 ```
 
-Baseline lifecycle guidance:
-- `docs/baseline-lifecycle.md`
-
-CI templates:
-- `docs/ci-templates.md`
-
-Value metrics:
-- `docs/value-metrics.md`
-
-Policy presets:
-- `docs/policy-presets.md`
-
-## Input schema
+## Input Schema
 
 Each input JSON is an object with at least:
 - `output` (string)
 
-Optional fields (used by policies):
+Optional fields used by policies:
 - `cost_usd` (number)
 - `model` (string)
 - `tokens_total` (number)
 - `tokens_in` / `tokens_out` (number)
 - `latency_ms` (number)
 
-Combined input schema:
+Combined input format:
 
 ```json
 {
@@ -114,3 +134,12 @@ decision = evaluate(
 print(decision.status)
 print(decision.reasons)
 ```
+
+## Additional Docs
+
+- `docs/quickstart-10min.md`
+- `docs/install-worthy-examples.md`
+- `docs/baseline-lifecycle.md`
+- `docs/ci-templates.md`
+- `docs/value-metrics.md`
+- `docs/policy-presets.md`
