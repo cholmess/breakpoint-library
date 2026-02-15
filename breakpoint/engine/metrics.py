@@ -21,6 +21,8 @@ class MetricsSummary:
     ci_decision_total: int
     unique_project_total: int
     repeat_project_total: int
+    installs_total: int
+    installs_by_source: dict[str, int]
 
     def to_dict(self) -> dict:
         return {
@@ -36,10 +38,12 @@ class MetricsSummary:
             "ci_decision_total": self.ci_decision_total,
             "unique_project_total": self.unique_project_total,
             "repeat_project_total": self.repeat_project_total,
+            "installs_total": self.installs_total,
+            "installs_by_source": dict(sorted(self.installs_by_source.items())),
         }
 
 
-def summarize_decisions(paths: list[str]) -> MetricsSummary:
+def summarize_decisions(paths: list[str], installs_path: str | None = None) -> MetricsSummary:
     file_paths = _expand_paths(paths)
     by_schema_version: dict[str, int] = {}
     by_status: dict[str, int] = {"ALLOW": 0, "WARN": 0, "BLOCK": 0}
@@ -51,6 +55,10 @@ def summarize_decisions(paths: list[str]) -> MetricsSummary:
     override_risk_counts: dict[str, int] = {}
     ci_decision_total = 0
     project_counts: dict[str, int] = {}
+    installs_total = 0
+    installs_by_source: dict[str, int] = {}
+    if installs_path:
+        installs_total, installs_by_source = _load_installs_snapshot(installs_path)
 
     for path in file_paths:
         payload = _read_json(path)
@@ -114,6 +122,8 @@ def summarize_decisions(paths: list[str]) -> MetricsSummary:
         ci_decision_total=ci_decision_total,
         unique_project_total=len(project_counts),
         repeat_project_total=sum(1 for count in project_counts.values() if count >= 2),
+        installs_total=installs_total,
+        installs_by_source=installs_by_source,
     )
 
 
@@ -165,3 +175,32 @@ def _validate_decision_payload(payload: object, source: str) -> None:
         raise ValueError(f"{source}: key 'reasons' must be an array of strings.")
     if not isinstance(payload["reason_codes"], list) or not all(isinstance(x, str) for x in payload["reason_codes"]):
         raise ValueError(f"{source}: key 'reason_codes' must be an array of strings.")
+
+
+def _load_installs_snapshot(path: str) -> tuple[int, dict[str, int]]:
+    payload = _read_json(path)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path}: installs snapshot must be a JSON object.")
+
+    # Accepted shape:
+    # {
+    #   "sources": {"pypi_downloads": 1200, "github_clones": 300, "github_watchers": 80}
+    # }
+    # or the flat equivalent with the same keys at top-level.
+    raw_sources = payload.get("sources", payload)
+    if not isinstance(raw_sources, dict):
+        raise ValueError(f"{path}: installs snapshot 'sources' must be a JSON object.")
+
+    sources: dict[str, int] = {}
+    for key, value in raw_sources.items():
+        if not isinstance(key, str) or not key.strip():
+            continue
+        if not isinstance(value, (int, float)):
+            continue
+        count = int(value)
+        if count < 0:
+            raise ValueError(f"{path}: installs count for '{key}' must be >= 0.")
+        sources[key.strip()] = count
+
+    total = sum(sources.values())
+    return total, sources

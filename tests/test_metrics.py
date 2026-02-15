@@ -100,3 +100,39 @@ def test_cli_metrics_summarize_json(tmp_path):
     assert payload["reason_code_counts"]["PII_EMAIL_BLOCK"] == 1
     assert payload["mode_counts"]["lite"] == 1
     assert payload["unique_project_total"] == 1
+
+
+def test_summarize_decisions_with_installs_snapshot(tmp_path):
+    decision_path = tmp_path / "decision.json"
+    installs_path = tmp_path / "installs.json"
+
+    decision_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0.0",
+                "status": "ALLOW",
+                "reasons": [],
+                "reason_codes": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    installs_path.write_text(
+        json.dumps(
+            {
+                "sources": {
+                    "pypi_downloads": 1200,
+                    "github_clones": 250,
+                    "github_watchers": 30,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    summary = summarize_decisions([str(decision_path)], installs_path=str(installs_path))
+    payload = summary.to_dict()
+    assert payload["installs_total"] == 1480
+    assert payload["installs_by_source"]["pypi_downloads"] == 1200
+    assert payload["installs_by_source"]["github_clones"] == 250
+    assert payload["installs_by_source"]["github_watchers"] == 30

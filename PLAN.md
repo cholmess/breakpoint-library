@@ -136,7 +136,7 @@ BreakPoint is a local decision engine that tells developers whether an AI change
 
 ## KPI Instrumentation Plan (30 Days)
 
-- [ ] Track installs (package downloads + GitHub clone/watch proxy).
+- [x] Track installs (ingest local installs snapshot with package downloads + GitHub clone/watch proxy into `metrics summarize`).
 - [x] Track active usage (decision artifact totals via `metrics summarize`).
 - [x] Track repeated usage (project-key based repeat-project counts).
 - [x] Track CI adoption (auto-tagged `ci` metadata and CI decision totals).

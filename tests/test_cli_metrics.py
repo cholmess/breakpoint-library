@@ -5,6 +5,7 @@ import sys
 
 def test_cli_metrics_summarize_json(tmp_path):
     decision_path = tmp_path / "decision.json"
+    installs_path = tmp_path / "installs.json"
     decision_path.write_text(
         json.dumps(
             {
@@ -23,6 +24,17 @@ def test_cli_metrics_summarize_json(tmp_path):
         ),
         encoding="utf-8",
     )
+    installs_path.write_text(
+        json.dumps(
+            {
+                "sources": {
+                    "pypi_downloads": 111,
+                    "github_clones": 22,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
 
     result = subprocess.run(
         [
@@ -32,6 +44,8 @@ def test_cli_metrics_summarize_json(tmp_path):
             "metrics",
             "summarize",
             str(decision_path),
+            "--installs",
+            str(installs_path),
             "--json",
         ],
         check=False,
@@ -52,3 +66,6 @@ def test_cli_metrics_summarize_json(tmp_path):
     assert payload["override_risk_counts"]["drift"] == 1
     assert payload["ci_decision_total"] == 1
     assert payload["unique_project_total"] == 1
+    assert payload["installs_total"] == 133
+    assert payload["installs_by_source"]["pypi_downloads"] == 111
+    assert payload["installs_by_source"]["github_clones"] == 22

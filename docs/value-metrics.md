@@ -85,6 +85,30 @@ breakpoint evaluate baseline.json candidate.json --json --project-key my-repo --
 
 `ci` metadata is auto-tagged when `CI=true` or `GITHUB_ACTIONS=true`.
 
+## Install Snapshot Ingestion (Phase 6)
+
+You can merge install proxies into the same summary by passing `--installs`:
+
+```bash
+breakpoint metrics summarize ./artifacts --installs installs_snapshot.json --json
+```
+
+Snapshot format:
+
+```json
+{
+  "sources": {
+    "pypi_downloads": 1200,
+    "github_clones": 250,
+    "github_watchers": 30
+  }
+}
+```
+
+Output adds:
+- `installs_total`
+- `installs_by_source`
+
 ## Joining To Feedback (Optional)
 
 For outcome metrics like false-positive rate, you need a stable join key.

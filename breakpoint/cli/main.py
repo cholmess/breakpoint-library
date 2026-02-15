@@ -133,6 +133,10 @@ def main() -> int:
         nargs="+",
         help="One or more JSON files or directories (directories are scanned recursively for *.json). Use '-' for stdin.",
     )
+    metrics_summarize_parser.add_argument(
+        "--installs",
+        help="Optional JSON snapshot file with install counts by source (for KPI summaries).",
+    )
     metrics_summarize_parser.add_argument("--json", action="store_true", help="Emit summary as JSON.")
 
     args = parser.parse_args()
@@ -242,7 +246,7 @@ def _run_config_presets(_args: argparse.Namespace) -> int:
 
 def _run_metrics_summarize(args: argparse.Namespace) -> int:
     try:
-        summary = summarize_decisions(list(args.paths))
+        summary = summarize_decisions(list(args.paths), installs_path=args.installs)
     except Exception as exc:
         if args.json:
             print(json.dumps({"error": str(exc)}, indent=2))
@@ -280,6 +284,10 @@ def _run_metrics_summarize(args: argparse.Namespace) -> int:
     print(f"CI_DECISION_TOTAL: {payload['ci_decision_total']}")
     print(f"UNIQUE_PROJECT_TOTAL: {payload['unique_project_total']}")
     print(f"REPEAT_PROJECT_TOTAL: {payload['repeat_project_total']}")
+    print(f"INSTALLS_TOTAL: {payload['installs_total']}")
+    print("INSTALLS_BY_SOURCE:")
+    for key in sorted(payload["installs_by_source"].keys()):
+        print(f"- {key}: {payload['installs_by_source'][key]}")
     return 0
 
 
