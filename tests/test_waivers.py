@@ -29,6 +29,7 @@ def test_waiver_removes_warn_and_records_metadata(tmp_path):
     decision = evaluate(
         baseline={"output": "hello", "cost_usd": 1.0, "latency_ms": 100},
         candidate={"output": "hello", "cost_usd": 1.25, "latency_ms": 100},
+        mode="full",
         config_path=str(config_path),
         metadata={"evaluation_time": "2026-02-15T00:00:00Z"},
     )
@@ -59,6 +60,7 @@ def test_expired_waiver_does_not_apply(tmp_path):
     decision = evaluate(
         baseline={"output": "hello", "cost_usd": 1.0, "latency_ms": 100},
         candidate={"output": "hello", "cost_usd": 1.25, "latency_ms": 100},
+        mode="full",
         config_path=str(config_path),
         metadata={"evaluation_time": "2026-02-15T00:00:00Z"},
     )
@@ -88,6 +90,7 @@ def test_waivers_require_evaluation_time(tmp_path):
         evaluate(
             baseline={"output": "hello", "cost_usd": 1.0, "latency_ms": 100},
             candidate={"output": "hello", "cost_usd": 1.25, "latency_ms": 100},
+            mode="full",
             config_path=str(config_path),
         )
 
@@ -109,6 +112,8 @@ def test_cli_reports_config_validation_error_for_bad_waivers(tmp_path):
             "evaluate",
             str(baseline_path),
             str(candidate_path),
+            "--mode",
+            "full",
             "--config",
             str(config_path),
             "--json",

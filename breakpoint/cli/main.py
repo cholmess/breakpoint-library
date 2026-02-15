@@ -60,7 +60,20 @@ def main() -> int:
         default=None,
         help="Path to candidate JSON input. If omitted, baseline_path must contain {baseline:..., candidate:...}.",
     )
+    evaluate_parser.add_argument(
+        "--mode",
+        choices=["lite", "full"],
+        default="lite",
+        help="Execution mode: lite (default) or full.",
+    )
     evaluate_parser.add_argument("--strict", action="store_true", help="Promote WARN to BLOCK.")
+    evaluate_parser.add_argument(
+        "--accept-risk",
+        action="append",
+        choices=["cost", "pii", "drift"],
+        default=[],
+        help="Lite mode only. Explicitly accept a named risk for this run (repeatable).",
+    )
     evaluate_parser.add_argument("--config", help="Path to custom JSON config.")
     evaluate_parser.add_argument(
         "--preset",
@@ -127,6 +140,7 @@ def main() -> int:
 
 def _run_evaluate(args: argparse.Namespace) -> int:
     try:
+        _validate_evaluate_mode_flags(args)
         stdin_cache: dict[str, str] = {}
         if args.candidate_path is None:
             payload = _read_json(args.baseline_path, stdin_cache)
@@ -139,10 +153,12 @@ def _run_evaluate(args: argparse.Namespace) -> int:
             baseline=baseline_data,
             candidate=candidate_data,
             strict=args.strict,
+            mode=args.mode,
             config_path=args.config,
             config_environment=args.env,
             metadata={"evaluation_time": args.now} if args.now else None,
             preset=args.preset,
+            accepted_risks=list(args.accept_risk),
         )
     except Exception as exc:
         error_code = "CONFIG_VALIDATION_ERROR" if isinstance(exc, ConfigValidationError) else "INPUT_VALIDATION_ERROR"
@@ -175,8 +191,29 @@ def _run_evaluate(args: argparse.Namespace) -> int:
         exit_codes_enabled=args.exit_codes,
         fail_on=args.fail_on,
     )
-    _print_text_decision(decision, exit_code=exit_code)
+    _print_text_decision(decision, exit_code=exit_code, mode=args.mode, accepted_risks=list(args.accept_risk))
     return exit_code
+
+
+def _validate_evaluate_mode_flags(args: argparse.Namespace) -> None:
+    mode = args.mode
+    if mode == "full" and args.accept_risk:
+        raise ValueError("--accept-risk is only available in --mode lite.")
+    if mode == "lite":
+        full_only_flags = []
+        if args.config:
+            full_only_flags.append("--config")
+        if args.preset:
+            full_only_flags.append("--preset")
+        if args.env:
+            full_only_flags.append("--env")
+        if args.now:
+            full_only_flags.append("--now")
+        if full_only_flags:
+            raise ValueError(
+                f"{', '.join(full_only_flags)} require --mode full. "
+                "Lite mode allows one-shot CLI overrides via --accept-risk only."
+            )
 
 
 def _run_config_print(args: argparse.Namespace) -> int:
@@ -271,11 +308,15 @@ def _result_exit_code(status: str, exit_codes_enabled: bool, fail_on: str | None
     return 0
 
 
-def _print_text_decision(decision, exit_code: int) -> None:
+def _print_text_decision(decision, exit_code: int, mode: str, accepted_risks: list[str]) -> None:
     print(_SECTION_DIVIDER)
     print("BreakPoint Evaluation")
     print(_SECTION_DIVIDER)
     print()
+    if mode == "lite" and accepted_risks:
+        accepted = ", ".join(sorted(set(accepted_risks)))
+        print(f"Accepted Risk Override (one-shot): {accepted}")
+        print()
     print(f"Final Decision: {decision.status}")
     print()
     print("Policy Results:")

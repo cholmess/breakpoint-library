@@ -119,7 +119,7 @@ def test_cli_text_output_has_deterministic_summary_order(tmp_path):
     assert lines[policy_results_index + 1].startswith("✓ No PII detected:")
     assert lines[policy_results_index + 2].startswith("✓ Response format:")
     assert lines[policy_results_index + 3].startswith("✗ Cost:")
-    assert lines[policy_results_index + 4].startswith("⚠ Latency:")
+    assert lines[policy_results_index + 4].startswith("✓ Latency:")
     assert lines[policy_results_index + 5].startswith("⚠ Output drift:")
     assert lines[-2] == "Exit Code: 0"
     assert lines[-1] == "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -129,6 +129,8 @@ def test_cli_text_output_matches_allow_golden():
     result = _run_evaluate_text(
         "examples/quickstart/baseline.json",
         "examples/quickstart/candidate_allow.json",
+        "--mode",
+        "full",
     )
     assert result.returncode == 0
     assert result.stdout == _read_golden("allow.txt")
@@ -138,6 +140,8 @@ def test_cli_text_output_matches_warn_golden():
     result = _run_evaluate_text(
         "examples/quickstart/baseline.json",
         "examples/quickstart/candidate_warn.json",
+        "--mode",
+        "full",
     )
     assert result.returncode == 0
     assert result.stdout == _read_golden("warn.txt")
@@ -147,6 +151,8 @@ def test_cli_text_output_matches_block_golden():
     result = _run_evaluate_text(
         "examples/install_worthy/baseline.json",
         "examples/install_worthy/candidate_format_regression.json",
+        "--mode",
+        "full",
     )
     assert result.returncode == 0
     assert result.stdout == _read_golden("block.txt")
@@ -187,6 +193,8 @@ def test_cli_block_summary_lists_all_blocking_reasons():
     result = _run_evaluate_text(
         "examples/quickstart/baseline.json",
         "examples/quickstart/candidate_block.json",
+        "--mode",
+        "full",
     )
 
     assert result.returncode == 0
@@ -208,6 +216,8 @@ def test_cli_decision_header_by_status():
     block_result = _run_evaluate_text(
         "examples/install_worthy/baseline.json",
         "examples/install_worthy/candidate_format_regression.json",
+        "--mode",
+        "full",
     )
 
     assert "Final Decision: ALLOW" in allow_result.stdout
@@ -460,6 +470,8 @@ def test_cli_evaluate_with_preset_works(tmp_path):
             "evaluate",
             str(baseline_path),
             str(candidate_path),
+            "--mode",
+            "full",
             "--preset",
             "chatbot",
             "--json",
@@ -500,6 +512,8 @@ def test_cli_env_override_changes_result(tmp_path):
             "evaluate",
             str(baseline_path),
             str(candidate_path),
+            "--mode",
+            "full",
             "--config",
             str(config_path),
             "--env",
@@ -517,6 +531,87 @@ def test_cli_env_override_changes_result(tmp_path):
     payload = json.loads(result.stdout)
     assert payload["status"] == "WARN"
     assert "COST_INCREASE_WARN" in payload["reason_codes"]
+
+
+def test_cli_lite_rejects_full_only_flags(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--config",
+            "policy.json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "--config require --mode full" in result.stderr
+
+
+def test_cli_accept_risk_cost_is_one_shot_lite_override(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.25}), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--accept-risk",
+            "cost",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Accepted Risk Override (one-shot): cost" in result.stdout
+    assert "Final Decision: ALLOW" in result.stdout
+
+
+def test_cli_accept_risk_rejected_in_full_mode(tmp_path):
+    baseline_path = tmp_path / "baseline.json"
+    candidate_path = tmp_path / "candidate.json"
+    baseline_path.write_text(json.dumps({"output": "hello", "cost_usd": 1.0}), encoding="utf-8")
+    candidate_path.write_text(json.dumps({"output": "hello world", "cost_usd": 1.25}), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "breakpoint.cli.main",
+            "evaluate",
+            str(baseline_path),
+            str(candidate_path),
+            "--mode",
+            "full",
+            "--accept-risk",
+            "cost",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "--accept-risk is only available in --mode lite" in result.stderr
 
 
 def test_cli_config_print_with_env_applies_overrides(tmp_path):

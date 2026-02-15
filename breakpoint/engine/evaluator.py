@@ -21,10 +21,13 @@ def evaluate(
     baseline: dict | None = None,
     candidate: dict | None = None,
     strict: bool = False,
+    mode: str = "lite",
     config_path: str | None = None,
     config_environment: str | None = None,
     preset: str | None = None,
+    accepted_risks: list[str] | None = None,
 ) -> Decision:
+    normalized_mode = _normalize_mode(mode)
     config = load_config(config_path, environment=config_environment, preset=preset)
     metadata_input = metadata or {}
     baseline_record, candidate_record = _normalize_inputs(
@@ -42,29 +45,36 @@ def evaluate(
             thresholds=config["cost_policy"],
             pricing=config.get("model_pricing", {}),
         ),
-        evaluate_latency_policy(
-            baseline=baseline_record,
-            candidate=candidate_record,
-            thresholds=config.get("latency_policy", {}),
-        ),
         evaluate_pii_policy(
             candidate=candidate_record,
             patterns=config["pii_policy"]["patterns"],
             allowlist=config["pii_policy"].get("allowlist", []),
         ),
-        evaluate_output_contract_policy(
-            baseline=baseline_record,
-            candidate=candidate_record,
-            config=config.get("output_contract_policy", {}),
-        ),
         evaluate_drift_policy(
             baseline=baseline_record,
             candidate=candidate_record,
-            thresholds=config["drift_policy"],
+            thresholds=_drift_thresholds_for_mode(config.get("drift_policy", {}), normalized_mode),
         ),
     ]
+    if normalized_mode == "full":
+        policy_results.insert(
+            1,
+            evaluate_latency_policy(
+                baseline=baseline_record,
+                candidate=candidate_record,
+                thresholds=config.get("latency_policy", {}),
+            ),
+        )
+        policy_results.insert(
+            3,
+            evaluate_output_contract_policy(
+                baseline=baseline_record,
+                candidate=candidate_record,
+                config=config.get("output_contract_policy", {}),
+            ),
+        )
 
-    waivers = parse_waivers(config.get("waivers"))
+    waivers = parse_waivers(config.get("waivers")) if normalized_mode == "full" else []
     applied_waivers: list[Waiver] = []
     if waivers:
         evaluation_time_raw = metadata_input.get("evaluation_time") or metadata_input.get("now")
@@ -78,8 +88,17 @@ def evaluate(
             policy_results, waivers=waivers, evaluation_time=evaluation_time
         )
 
+    if normalized_mode == "lite":
+        policy_results = _apply_accepted_risks(policy_results, accepted_risks)
+
     aggregated = aggregate_policy_results(policy_results, strict=strict)
-    metadata_payload = _decision_metadata(baseline_record, candidate_record, strict, applied_waivers)
+    metadata_payload = _decision_metadata(
+        baseline_record,
+        candidate_record,
+        strict,
+        applied_waivers,
+        mode=normalized_mode,
+    )
     return Decision(
         schema_version=aggregated.schema_version,
         status=aggregated.status,
@@ -141,8 +160,14 @@ def _apply_metadata_overrides(baseline: dict, candidate: dict, metadata: dict) -
             target[field_name] = value
 
 
-def _decision_metadata(baseline: dict, candidate: dict, strict: bool, applied_waivers: list[Waiver]) -> dict:
-    metadata = {"strict": strict}
+def _decision_metadata(
+    baseline: dict,
+    candidate: dict,
+    strict: bool,
+    applied_waivers: list[Waiver],
+    mode: str,
+) -> dict:
+    metadata = {"strict": strict, "mode": mode}
 
     if isinstance(baseline.get("model"), str):
         metadata["baseline_model"] = baseline["model"]
@@ -162,3 +187,41 @@ def _decision_metadata(baseline: dict, candidate: dict, strict: bool, applied_wa
         ]
 
     return metadata
+
+
+def _normalize_mode(mode: str) -> str:
+    normalized = (mode or "lite").strip().lower()
+    if normalized not in {"lite", "full"}:
+        raise ValueError("Mode must be either 'lite' or 'full'.")
+    return normalized
+
+
+def _drift_thresholds_for_mode(thresholds: dict, mode: str) -> dict:
+    if not isinstance(thresholds, dict):
+        return {"semantic_check_enabled": False} if mode == "lite" else {}
+    result = dict(thresholds)
+    if mode == "lite":
+        result["semantic_check_enabled"] = False
+    return result
+
+
+def _apply_accepted_risks(policy_results, accepted_risks: list[str] | None):
+    accepted = {risk.strip().lower() for risk in (accepted_risks or []) if isinstance(risk, str) and risk.strip()}
+    if not accepted:
+        return policy_results
+
+    overridden = []
+    for result in policy_results:
+        if result.policy in accepted and result.status in {"WARN", "BLOCK"}:
+            overridden.append(
+                type(result)(
+                    policy=result.policy,
+                    status="ALLOW",
+                    reasons=[],
+                    codes=[],
+                    details=result.details,
+                )
+            )
+            continue
+        overridden.append(result)
+    return overridden

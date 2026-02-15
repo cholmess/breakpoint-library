@@ -1,142 +1,149 @@
-# BreakPoint Product Plan (Install-Worthy Bar)
+# BreakPoint Strategic Plan (Lite vs Full)
 
 Last updated: 2026-02-15
 Owner: Christopher Holmes
+Status: Finalized strategic decisions captured
 
-## Objective
+## Core Positioning
 
-Make BreakPoint feel immediately necessary to indie developers by proving, in under 30 seconds, that it catches model/prompt regressions they would otherwise miss.
+BreakPoint is a local decision engine that tells developers whether an AI change is safe to ship.
 
-## Product Bar (Must Be True Before Publish)
+- Lite mode is the default, zero-friction safety layer.
+- Full mode is the advanced policy and CI enforcement layer.
+- Use one command surface: `breakpoint evaluate`.
+- Activate advanced behavior with `--mode full`.
 
-- [x] A first-time user can run one command and see at least one concrete regression signal.
-- [x] CLI output clearly answers: `What changed?`, `How bad?`, `What should I do next?`
-- [x] README leads with pain and outcome, not architecture.
-- [x] Demo includes realistic model/prompt change scenarios and returns `WARN` or `BLOCK` for clear reasons.
+## Finalized Decisions
 
-## Scope Guardrails
+### 1) Lite Overrides
 
-In scope:
-- Local-first CLI and Python library
-- Deterministic policy decisions (`ALLOW | WARN | BLOCK`)
-- Opinionated defaults with minimal config
-- CI-friendly behavior and stable JSON contract
+- Lite allows one-shot CLI overrides only.
+- No persistent waivers in Lite.
+- No saved config edits in Lite.
+- Override must be explicit and named, e.g. `--accept-risk cost`.
 
-Out of scope (for this phase):
-- SaaS/dashboard features
-- Repo-wide AI scanning
-- Agentic automation loops
-- Enterprise governance workflows
+### 2) Full-Only Features (Day 1)
 
-## Critical User Value Signals (Default Policies)
+- Persistent waivers.
+- Presets and environments.
+- Strict mode via config.
+- Output contract enforcement.
+- Latency policy.
+- Custom pricing models.
 
-These must be surfaced by default with quantified deltas:
+### 3) Strict Mode Behavior
 
-- [x] Cost spike (`%` and absolute estimate)
-- [x] Output contract break (schema/format mismatch)
-- [x] PII exposure (type + count)
-- [x] Quality/content drift (summary or key-info loss proxy)
-- [x] Verbosity drift (`tokens/chars`, ratio)
+- Lite: allow `--strict` as a single explicit flag.
+- Full: supports config-based strict enforcement.
 
-## 3-Week Execution Plan
+### 4) Override Logging in Lite
 
-## Week 1: 30-Second Wow Output
-Target dates: 2026-02-16 to 2026-02-22
+- Print override reason to terminal only.
+- No file logging or audit trail in Lite.
 
-### Deliverables
-- [x] CLI summary block with deterministic structure:
-  - `Final Decision`
-  - `Policy Results`
-  - `Summary`
-  - `Exit Code`
-- [x] High-signal text output with clear severity wording
-- [x] JSON output parity with text output (same core facts)
+### 5) Lite Default Thresholds
 
-### Definition of done
-- [x] For identical input, output order/content is stable
-- [x] A user can scan results in <30 seconds and identify the risk
-- [x] At least one fixture produces `BLOCK` with obvious justification
+- Cost: `WARN >= +20%`, `BLOCK >= +40%`.
+- PII: `BLOCK` on first detection (email, credit card, phone).
+- Drift: `WARN >= +35% length delta`, `BLOCK >= +70% length delta`.
+- Empty output: always `BLOCK`.
 
-## Week 2: Demo + Examples That Sell Value
-Target dates: 2026-02-23 to 2026-03-01
+### 6) Drift Scope
 
-### Deliverables
-- [x] One killer demo scenario (model swap + slight prompt tweak)
-- [x] Three realistic examples with expected outputs:
-  - Example A: cost regression
-  - Example B: output format regression
-  - Example C: PII + verbosity drift
-- [x] Single command entry point (`make demo` or equivalent)
+- Lite includes basic drift only (length + structure).
+- Semantic/embedding drift is reserved for paid tier.
 
-### Definition of done
-- [x] Fresh clone to first meaningful signal in <5 minutes
-- [x] Each example includes “why this matters in production”
-- [x] At least 2 examples produce non-`ALLOW` outcomes
+### 7) Paid Tier Sequencing
 
-## Week 3: Packaging Narrative + Publish Gate
-Target dates: 2026-03-02 to 2026-03-08
+- First monetizable capability: semantic drift (embedding-based).
+- Second: stronger PII detection (ML-based).
+- Third: CI reporting and structured reports.
 
-### Deliverables
-- [x] README rewrite with pain-first opening
-- [x] `Try in 60 seconds` section near top
-- [x] Minimal API documentation (only what users need to ship)
-- [x] Publish checklist and release candidate validation pass
+### 8) Command Surface
 
-### Definition of done
-- [x] README communicates value before architecture details
-- [x] Install + run + interpret flow validated by a new user path
-- [x] Publish decision uses objective checklist below
+- Keep a single command surface: `breakpoint evaluate`.
+- Advanced capabilities exposed via `--mode full`.
+- No separate advanced subcommand.
 
-## Publish Checklist (Hard Gate)
+### 9) 30-Day KPI Priority
 
-Do not publish until all are checked:
+1. Installs
+2. Active usage
+3. Repeated usage
+4. CI adoption
+5. Override rate
 
-- [x] Demo run shows at least one surprising/useful regression finding
-- [x] CLI output includes quantified deltas (not just generic warnings)
-- [x] JSON contract and exit codes are stable and tested
-- [x] README includes 3 copy-paste examples with expected outcomes
-- [x] No required configuration for first useful run
+### 10) README Positioning
 
-## Work Breakdown (Implementation)
+- Lead with: Lite works out of the box.
+- Present advanced capabilities as optional.
+- Avoid enterprise-heavy positioning.
+- Emphasize clarity, determinism, and trust.
 
-## A. Output Experience
-- [x] Standardize reason formatting and ranking
-- [x] Add concise severity labels and thresholds in output
-- [x] Ensure final line always includes action guidance
+## Mode Boundary Matrix
 
-## B. Detection Quality
-- [x] Tune thresholds to reduce noisy WARNs
-- [x] Add/validate format-break detector for common structured outputs
-- [x] Improve drift messaging from abstract to specific symptom
+- Lite includes:
+  - Cost policy with fixed defaults
+  - PII detection (regex baseline)
+  - Basic drift (length + structure)
+  - `--strict` flag
+  - One-shot explicit risk acceptance
+- Lite excludes:
+  - Presets/environments
+  - Waivers
+  - Output contract policy
+  - Latency policy
+  - Custom pricing models
+  - Persistent policy edits
+- Full includes:
+  - Config-driven policy activation and thresholds
+  - Waivers, presets, environments
+  - Strict config behavior
+  - Output contract and latency policies
+  - Custom pricing models
 
-## C. Docs + Demo Assets
-- [x] Create realistic baseline/candidate fixture pairs
-- [x] Add before/after snippets to docs
-- [x] Keep architecture section below quickstart/value proof
+## Implementation Plan
 
-## D. Verification
-- [x] Golden tests for CLI output shape and reason ordering
-- [x] Regression tests for each headline risk type
-- [x] Smoke test for quickstart command path
+## Phase 1: Policy and CLI Boundary Enforcement
 
-## Success Metrics (First 30 Days Post-Release)
+- [ ] Add mode-aware policy loading so Lite only evaluates cost/pii/basic_drift.
+- [ ] Gate Full-only flags/options behind `--mode full` with clear errors.
+- [ ] Add/confirm `--accept-risk <named-risk>` behavior for Lite one-shot overrides.
+- [ ] Add/confirm `--strict` in Lite as non-persistent behavior.
+- [ ] Ensure no Lite path writes waiver/config artifacts.
 
-- [ ] >=70% of first runs produce at least one non-trivial signal in sample/demo mode
-- [ ] <=20% false-positive rate on `WARN/BLOCK` in early user feedback
-- [ ] >=3 reports of “caught issue before deploy” from real users
-- [ ] Median time to useful result <5 minutes
+## Phase 2: Threshold Alignment
 
-## Risks and Mitigations
+- [ ] Update Lite cost thresholds to `WARN +20`, `BLOCK +40`.
+- [ ] Update Lite drift thresholds to `WARN +35`, `BLOCK +70`.
+- [ ] Enforce Lite empty-output `BLOCK`.
+- [ ] Enforce Lite PII immediate `BLOCK` on first email/phone/credit card match.
 
-- Risk: Tool feels abstract or redundant
-  - Mitigation: Lead with concrete diffs and quantified impact in every example
-- Risk: Too many false positives reduce trust
-  - Mitigation: Tight defaults, clear calibration guidance, deterministic output
-- Risk: Scope creep before adoption
-  - Mitigation: Enforce publish gate and out-of-scope list
+## Phase 3: UX and Messaging
 
-## Immediate Next Actions
+- [ ] Show explicit mode in CLI output (`Mode: lite|full`).
+- [ ] Show explicit override acknowledgment in terminal output when used.
+- [ ] Ensure decision summary language stays deterministic and calm.
+- [ ] Keep Full mode visible but secondary in README and quickstart.
 
-- [ ] Cut and push `v0.2.0-rc2` tag
-- [ ] Publish release notes for `v0.2.0-rc2`
-- [ ] Run one external-user validation pass (fresh clone feedback)
+## Phase 4: Validation and Release Readiness
+
+- [ ] Add tests for Lite/Full feature gating.
+- [ ] Add tests for finalized Lite thresholds and empty-output block rule.
+- [ ] Add tests for `--accept-risk` explicit naming and one-shot behavior.
+- [ ] Add tests proving no persistent artifacts in Lite override flow.
+- [ ] Add test coverage for `--strict` in Lite and config strict in Full.
+
+## KPI Instrumentation Plan (30 Days)
+
+- [ ] Track installs (package downloads + GitHub clone/watch proxy).
+- [ ] Track active usage (CLI runs in demos/issues/user reports).
+- [ ] Track repeated usage (same user/project reruns over time).
+- [ ] Track CI adoption (mentions/integrations using CI template).
+- [ ] Track override rate and accepted risk types.
+
+## Paid Value Proposition
+
+- Prevent hidden cost explosions.
+- Prevent embarrassing production mistakes.
+- Provide higher-confidence shipping decisions through deeper intelligence.

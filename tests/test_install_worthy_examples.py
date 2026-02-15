@@ -14,10 +14,10 @@ def _load(name: str) -> dict:
 def test_install_worthy_examples_are_reproducible():
     baseline = _load("baseline.json")
 
-    cost_model_swap = evaluate(baseline=baseline, candidate=_load("candidate_cost_model_swap.json"))
-    format_regression = evaluate(baseline=baseline, candidate=_load("candidate_format_regression.json"))
-    pii_verbosity = evaluate(baseline=baseline, candidate=_load("candidate_pii_verbosity.json"))
-    killer_tradeoff = evaluate(baseline=baseline, candidate=_load("candidate_killer_tradeoff.json"))
+    cost_model_swap = evaluate(baseline=baseline, candidate=_load("candidate_cost_model_swap.json"), mode="full")
+    format_regression = evaluate(baseline=baseline, candidate=_load("candidate_format_regression.json"), mode="full")
+    pii_verbosity = evaluate(baseline=baseline, candidate=_load("candidate_pii_verbosity.json"), mode="full")
+    killer_tradeoff = evaluate(baseline=baseline, candidate=_load("candidate_killer_tradeoff.json"), mode="full")
 
     assert cost_model_swap.status == "BLOCK"
     assert "COST_INCREASE_BLOCK" in cost_model_swap.reason_codes

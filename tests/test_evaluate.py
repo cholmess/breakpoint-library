@@ -83,6 +83,7 @@ def test_latency_warn_on_increase():
     decision = evaluate(
         baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
         candidate={"output": "same", "cost_usd": 1.0, "latency_ms": 140},
+        mode="full",
     )
     assert decision.status == "WARN"
     assert "LATENCY_INCREASE_WARN" in decision.reason_codes
@@ -93,6 +94,7 @@ def test_latency_blocks_on_large_increase():
     decision = evaluate(
         baseline={"output": "same", "cost_usd": 1.0, "latency_ms": 100},
         candidate={"output": "same", "cost_usd": 1.0, "latency_ms": 200},
+        mode="full",
     )
     assert decision.status == "BLOCK"
     assert "LATENCY_INCREASE_BLOCK" in decision.reason_codes
@@ -102,6 +104,7 @@ def test_latency_missing_data_warns():
     decision = evaluate(
         baseline={"output": "same", "cost_usd": 1.0},
         candidate={"output": "same", "cost_usd": 1.0},
+        mode="full",
     )
     assert decision.status == "WARN"
     assert "LATENCY_WARN_MISSING_DATA" in decision.reason_codes
@@ -112,6 +115,7 @@ def test_latency_metadata_mapping():
         baseline={"output": "same", "cost_usd": 1.0},
         candidate={"output": "same", "cost_usd": 1.0},
         metadata={"baseline_latency_ms": 100, "candidate_latency_ms": 140},
+        mode="full",
     )
     assert decision.status == "WARN"
     assert "LATENCY_INCREASE_WARN" in decision.reason_codes
@@ -121,6 +125,7 @@ def test_output_contract_blocks_invalid_json_when_baseline_is_json():
     decision = evaluate(
         baseline={"output": "{\"id\":1,\"summary\":\"ok\"}", "cost_usd": 1.0},
         candidate={"output": "not-json", "cost_usd": 1.0},
+        mode="full",
     )
     assert decision.status == "BLOCK"
     assert "OUTPUT_CONTRACT_INVALID_JSON_BLOCK" in decision.reason_codes
@@ -131,6 +136,7 @@ def test_output_contract_warns_on_missing_keys():
     decision = evaluate(
         baseline={"output": "{\"id\":1,\"summary\":\"ok\",\"severity\":\"medium\"}", "cost_usd": 1.0},
         candidate={"output": "{\"id\":2,\"summary\":\"ok\"}", "cost_usd": 1.0},
+        mode="full",
     )
     assert decision.status == "WARN"
     assert "OUTPUT_CONTRACT_MISSING_KEYS_WARN" in decision.reason_codes
@@ -141,6 +147,7 @@ def test_output_contract_warns_on_type_mismatch():
     decision = evaluate(
         baseline={"output": "{\"id\":1,\"summary\":\"ok\"}", "cost_usd": 1.0},
         candidate={"output": "{\"id\":\"1\",\"summary\":\"ok\"}", "cost_usd": 1.0},
+        mode="full",
     )
     assert decision.status == "WARN"
     assert "OUTPUT_CONTRACT_TYPE_MISMATCH_WARN" in decision.reason_codes
@@ -174,6 +181,7 @@ def test_environment_override_changes_thresholds(tmp_path):
         candidate={"output": "same", "cost_usd": 1.08, "latency_ms": 100},
         config_path=str(config_path),
         config_environment="dev",
+        mode="full",
     )
     assert dev_decision.status == "WARN"
     assert "COST_INCREASE_WARN" in dev_decision.reason_codes
@@ -183,8 +191,19 @@ def test_environment_override_changes_thresholds(tmp_path):
         candidate={"output": "same", "cost_usd": 1.08, "latency_ms": 100},
         config_path=str(config_path),
         config_environment="prod",
+        mode="full",
     )
     assert prod_decision.status == "ALLOW"
+
+
+def test_lite_mode_ignores_latency_and_output_contract():
+    decision = evaluate(
+        baseline={"output": "{\"id\":1}", "cost_usd": 1.0, "latency_ms": 100},
+        candidate={"output": "not-json", "cost_usd": 1.0, "latency_ms": 180},
+    )
+    assert decision.status == "ALLOW"
+    assert "LATENCY_INCREASE_WARN" not in decision.reason_codes
+    assert "OUTPUT_CONTRACT_INVALID_JSON_BLOCK" not in decision.reason_codes
 
 
 def test_invalid_config_thresholds_fail_fast(tmp_path):
