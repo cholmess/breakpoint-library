@@ -1,0 +1,8 @@
+{
+  "output": "Here is a summary of the quarterly financial report for Q4 2024.",
+  "tokens_in": 1500,
+  "tokens_out": 500,
+  "model": "gpt-4",
+  "latency_ms": 250
+}
+

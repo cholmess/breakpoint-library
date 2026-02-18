@@ -1,0 +1,7 @@
+{
+  "output": "The weather today will be sunny with a high of 75°F.",
+  "cost_usd": 0.10,
+  "latency_ms": 50,
+  "model": "gpt-3.5-turbo"
+}
+

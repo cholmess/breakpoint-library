@@ -1,0 +1,7 @@
+{
+  "output": "Your order has been processed successfully. Order ID: ORD-12345. Payment processed with card ending in 4532-1234-5678-9010.",
+  "cost_usd": 0.52,
+  "latency_ms": 125,
+  "model": "gpt-3.5-turbo"
+}
+

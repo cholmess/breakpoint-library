@@ -1,0 +1,7 @@
+{
+  "output": "This is a baseline response with moderate length and standard formatting.",
+  "cost_usd": 1.00,
+  "latency_ms": 100,
+  "model": "gpt-4"
+}
+

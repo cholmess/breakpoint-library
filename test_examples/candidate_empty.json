@@ -1,0 +1,7 @@
+{
+  "output": "",
+  "cost_usd": 0.05,
+  "latency_ms": 30,
+  "model": "gpt-3.5-turbo"
+}
+

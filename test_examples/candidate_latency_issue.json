@@ -1,0 +1,7 @@
+{
+  "output": "The weather today will be sunny with a high of 75°F. Additional details: light winds from the west, humidity at 45%, and clear skies throughout the day.",
+  "cost_usd": 0.12,
+  "latency_ms": 450,
+  "model": "gpt-3.5-turbo"
+}
+

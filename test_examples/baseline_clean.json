@@ -1,0 +1,7 @@
+{
+  "output": "Your order has been processed successfully. Order ID: ORD-12345",
+  "cost_usd": 0.50,
+  "latency_ms": 120,
+  "model": "gpt-3.5-turbo"
+}
+

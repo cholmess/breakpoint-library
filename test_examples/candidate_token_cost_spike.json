@@ -1,0 +1,8 @@
+{
+  "output": "Here is a comprehensive summary of the quarterly financial report for Q4 2024, including detailed analysis of revenue streams, cost structures, and future projections.",
+  "tokens_in": 1500,
+  "tokens_out": 1200,
+  "model": "gpt-4",
+  "latency_ms": 380
+}
+

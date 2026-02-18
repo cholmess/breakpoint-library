@@ -1,0 +1,70 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BreakPoint Evaluation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Mode: lite
+
+Final Decision: ALLOW
+
+Policy Results:
+✓ No PII detected: No matches.
+✓ Response format: No schema drift detected.
+✓ Cost: No issues.
+✓ Latency: No issues.
+✓ Output drift: No issues.
+
+Summary:
+No risky deltas detected against configured policies.
+
+Exit Code: 0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=== TEST 2: WARN Case ===
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BreakPoint Evaluation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Mode: lite
+
+Final Decision: WARN
+
+Policy Results:
+✓ No PII detected: No matches.
+✓ Response format: No schema drift detected.
+⚠ Cost: Delta +25.00%.
+✓ Latency: No issues.
+⚠ Output drift: Length delta +52.17%.
+
+Summary:
+Cost increased by 25.0% (>=20%).
+1 additional signal(s) detected.
+
+Exit Code: 0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=== TEST 3: BLOCK Case ===
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BreakPoint Evaluation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Mode: lite
+
+Final Decision: BLOCK
+
+Policy Results:
+✗ No PII detected: Detected 1 match(es).
+✓ Response format: No schema drift detected.
+✗ Cost: Delta +40.00%.
+✓ Latency: No issues.
+✓ Output drift: No issues.
+
+Summary:
+- Cost increased by 40.0% (>=40%).
+- PII detected: EMAIL(1). Total matches: 1.
+
+Exit Code: 0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

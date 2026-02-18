@@ -204,7 +204,14 @@ def _run_evaluate(args: argparse.Namespace) -> int:
         exit_codes_enabled=args.exit_codes,
         fail_on=args.fail_on,
     )
-    _print_text_decision(decision, exit_code=exit_code, mode=args.mode, accepted_risks=list(args.accept_risk))
+    _print_text_decision(
+        decision, 
+        exit_code=exit_code, 
+        mode=args.mode, 
+        accepted_risks=list(args.accept_risk),
+        baseline_data=baseline_data,
+        candidate_data=candidate_data
+    )
     return exit_code
 
 
@@ -354,7 +361,14 @@ def _result_exit_code(status: str, exit_codes_enabled: bool, fail_on: str | None
     return 0
 
 
-def _print_text_decision(decision, exit_code: int, mode: str, accepted_risks: list[str]) -> None:
+def _print_text_decision(
+    decision, 
+    exit_code: int, 
+    mode: str, 
+    accepted_risks: list[str],
+    baseline_data: dict | None = None,
+    candidate_data: dict | None = None
+) -> None:
     print(_SECTION_DIVIDER)
     print("BreakPoint Evaluation")
     print(_SECTION_DIVIDER)
@@ -365,14 +379,45 @@ def _print_text_decision(decision, exit_code: int, mode: str, accepted_risks: li
         accepted = ", ".join(sorted(set(accepted_risks)))
         print(f"Accepted Risk Override (one-shot): {accepted}")
         print()
+    
+    # Input Comparison Section
+    if baseline_data and candidate_data:
+        print("Input Comparison:")
+        _print_comparison(baseline_data, candidate_data)
+        print()
+    
     print(f"Final Decision: {decision.status}")
     print()
     print("Policy Results:")
     policy_statuses = _policy_status_by_reason_code(decision.reason_codes)
     for policy in _POLICY_DISPLAY_ORDER:
         status = policy_statuses.get(policy, "ALLOW")
-        print(f"{_status_symbol(status)} {_policy_label(policy)}: {_policy_detail(policy, status, decision.metrics)}")
+        detail = _policy_detail_enhanced(
+            policy, 
+            status, 
+            decision.metrics, 
+            decision.details,
+            baseline_data,
+            candidate_data
+        )
+        # Add color indicator and threshold info inline
+        color_indicator = _get_color_indicator(status)
+        threshold_info = _get_threshold_info(policy, status, decision.metrics, baseline_data, candidate_data)
+        detail_with_threshold = f"{detail}{threshold_info}" if threshold_info else detail
+        print(f"{color_indicator} {_status_symbol(status)} {_policy_label(policy)}: {detail_with_threshold}")
     print()
+    
+    # Detailed Metrics Section
+    if decision.metrics:
+        print("Detailed Metrics:")
+        for key in _METRIC_DISPLAY_ORDER:
+            value = decision.metrics.get(key)
+            if isinstance(value, (int, float)):
+                label = _METRIC_LABELS.get(key, key)
+                formatted = _format_metric_value(key, float(value))
+                print(f"  {label}: {formatted}")
+        print()
+    
     print("Summary:")
     if decision.reasons:
         if decision.status.upper() == "BLOCK":
@@ -394,6 +439,14 @@ def _print_text_decision(decision, exit_code: int, mode: str, accepted_risks: li
     else:
         print("No risky deltas detected against configured policies.")
     print()
+    
+    # Reason Codes Section
+    if decision.reason_codes:
+        print("Reason Codes:")
+        for code in decision.reason_codes:
+            print(f"  - {code}")
+        print()
+    
     print(f"Exit Code: {exit_code}")
     print(_SECTION_DIVIDER)
 
@@ -455,6 +508,132 @@ def _reasons_with_severity(reasons: list[str], reason_codes: list[str], severity
         if _severity_from_reason_code(code) == severity:
             matching.append(reason)
     return matching
+
+
+def _get_color_indicator(status: str) -> str:
+    """Get color indicator for status."""
+    normalized = status.upper()
+    if normalized == "BLOCK":
+        return "🔴"
+    elif normalized == "WARN":
+        return "🟡"
+    return "🟢"
+
+
+def _get_threshold_info(policy: str, status: str, metrics: dict, baseline_data: dict | None, candidate_data: dict | None) -> str:
+    """Get threshold information to append to policy detail."""
+    if status.upper() == "ALLOW" or not baseline_data or not candidate_data:
+        return ""
+    
+    threshold_info = ""
+    
+    if policy == "cost":
+        baseline_cost = baseline_data.get("cost_usd")
+        candidate_cost = candidate_data.get("cost_usd")
+        if isinstance(baseline_cost, (int, float)) and isinstance(candidate_cost, (int, float)) and candidate_cost > baseline_cost:
+            increase = ((candidate_cost - baseline_cost) / baseline_cost) * 100
+            epsilon = 0.01
+            if increase + epsilon >= 40:
+                threshold_info = " [🔴 BLOCK threshold exceeded]"
+            elif increase + epsilon >= 20:
+                threshold_info = " [🟡 WARN threshold exceeded]"
+    
+    elif policy == "drift":
+        baseline_output = str(baseline_data.get("output", ""))
+        candidate_output = str(candidate_data.get("output", ""))
+        baseline_len = len(baseline_output)
+        candidate_len = len(candidate_output)
+        if baseline_len > 0:
+            delta_pct = abs(candidate_len - baseline_len) / baseline_len * 100
+            if delta_pct >= 70:
+                threshold_info = " [🔴 BLOCK threshold exceeded]"
+            elif delta_pct >= 35:
+                threshold_info = " [🟡 WARN threshold exceeded]"
+    
+    return threshold_info
+
+
+def _print_comparison(baseline: dict, candidate: dict) -> None:
+    """Print detailed comparison between baseline and candidate."""
+    baseline_output = baseline.get("output", "")
+    candidate_output = candidate.get("output", "")
+    baseline_len = len(str(baseline_output))
+    candidate_len = len(str(candidate_output))
+    
+    print(f"  Output Length: {baseline_len} chars → {candidate_len} chars")
+    
+    baseline_cost = baseline.get("cost_usd")
+    candidate_cost = candidate.get("cost_usd")
+    if isinstance(baseline_cost, (int, float)) and isinstance(candidate_cost, (int, float)):
+        print(f"  Cost: ${baseline_cost:.4f} → ${candidate_cost:.4f}")
+    
+    baseline_tokens_in = baseline.get("tokens_in")
+    candidate_tokens_in = candidate.get("tokens_in")
+    baseline_tokens_out = baseline.get("tokens_out")
+    candidate_tokens_out = candidate.get("tokens_out")
+    if isinstance(baseline_tokens_in, (int, float)) and isinstance(candidate_tokens_in, (int, float)):
+        print(f"  Tokens In: {int(baseline_tokens_in)} → {int(candidate_tokens_in)}")
+    if isinstance(baseline_tokens_out, (int, float)) and isinstance(candidate_tokens_out, (int, float)):
+        print(f"  Tokens Out: {int(baseline_tokens_out)} → {int(candidate_tokens_out)}")
+    
+    baseline_latency = baseline.get("latency_ms")
+    candidate_latency = candidate.get("latency_ms")
+    if isinstance(baseline_latency, (int, float)) and isinstance(candidate_latency, (int, float)):
+        print(f"  Latency: {int(baseline_latency)}ms → {int(candidate_latency)}ms")
+    
+    baseline_model = baseline.get("model")
+    candidate_model = candidate.get("model")
+    if baseline_model or candidate_model:
+        print(f"  Model: {baseline_model or 'N/A'} → {candidate_model or 'N/A'}")
+
+
+def _policy_detail_enhanced(
+    policy: str, 
+    status: str, 
+    metrics: dict,
+    details: dict,
+    baseline_data: dict | None,
+    candidate_data: dict | None
+) -> str:
+    """Enhanced policy detail with more information."""
+    # Start with base detail
+    base_detail = _policy_detail(policy, status, metrics)
+    
+    # Add additional context based on policy
+    if policy == "cost" and baseline_data and candidate_data:
+        baseline_cost = baseline_data.get("cost_usd")
+        candidate_cost = candidate_data.get("cost_usd")
+        if isinstance(baseline_cost, (int, float)) and isinstance(candidate_cost, (int, float)):
+            delta = candidate_cost - baseline_cost
+            if abs(delta) > 0.0001:
+                sign = "+" if delta > 0 else ""
+                base_detail += f" (${baseline_cost:.4f} → ${candidate_cost:.4f}, {sign}${delta:.4f})"
+    
+    if policy == "drift" and baseline_data and candidate_data:
+        baseline_output = str(baseline_data.get("output", ""))
+        candidate_output = str(candidate_data.get("output", ""))
+        baseline_len = len(baseline_output)
+        candidate_len = len(candidate_output)
+        if baseline_len > 0:
+            base_detail += f" ({baseline_len} → {candidate_len} chars)"
+    
+    if policy == "pii" and details.get("pii"):
+        pii_details = details["pii"]
+        type_counts = pii_details.get("blocked_type_counts", {})
+        if type_counts:
+            types = ", ".join([f"{k}({v})" for k, v in sorted(type_counts.items())])
+            base_detail += f" [Types: {types}]"
+    
+    if policy == "latency" and baseline_data and candidate_data:
+        baseline_latency = baseline_data.get("latency_ms")
+        candidate_latency = candidate_data.get("latency_ms")
+        if isinstance(baseline_latency, (int, float)) and isinstance(candidate_latency, (int, float)):
+            delta = candidate_latency - baseline_latency
+            if abs(delta) > 0.1:
+                sign = "+" if delta > 0 else ""
+                base_detail += f" ({int(baseline_latency)}ms → {int(candidate_latency)}ms, {sign}{int(delta)}ms)"
+    
+    return base_detail
 
 
 def _policy_detail(policy: str, status: str, metrics: dict) -> str:
