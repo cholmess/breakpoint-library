@@ -12,6 +12,10 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0.0"]
+ml = [
+    "sentence-transformers>=2.2.2",
+    "torch>=2.0.0",
+]
 
 [project.scripts]
 breakpoint = "breakpoint.cli.main:main"
