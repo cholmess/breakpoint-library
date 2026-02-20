@@ -167,6 +167,43 @@ def _run_evaluate(args: argparse.Namespace) -> int:
         if args.candidate_path is None:
             payload = _read_json(args.baseline_path, stdin_cache)
             baseline_data, candidate_data = _split_combined_input(payload)
+        elif os.path.isdir(args.candidate_path):
+            import glob
+            files = sorted(glob.glob(os.path.join(args.candidate_path, "*.json")))
+            if not files:
+                print(f"ERROR: No .json files found in directory '{args.candidate_path}'.", file=sys.stderr)
+                return 1
+            
+            baseline_data = _read_json(args.baseline_path, stdin_cache)
+            results = []
+            
+            for fpath in files:
+                candidate_data = _read_json(fpath, stdin_cache)
+                decision = evaluate(
+                    baseline=baseline_data,
+                    candidate=candidate_data,
+                    strict=args.strict,
+                    mode=args.mode,
+                    config_path=args.config,
+                    config_environment=args.env,
+                    metadata=_evaluation_metadata(args),
+                    preset=args.preset,
+                    accepted_risks=list(args.accept_risk),
+                )
+                results.append((fpath, decision, candidate_data))
+                
+            _print_bakeoff_summary(args.baseline_path, baseline_data, results)
+            
+            overall_code = 0
+            for _, decision, _ in results:
+                code = _result_exit_code(
+                    status=decision.status,
+                    exit_codes_enabled=args.exit_codes,
+                    fail_on=args.fail_on,
+                )
+                if code > overall_code:
+                    overall_code = code
+            return overall_code
         else:
             baseline_data = _read_json(args.baseline_path, stdin_cache)
             candidate_data = _read_json(args.candidate_path, stdin_cache)
@@ -477,6 +514,47 @@ def _print_text_decision(
         print()
     
     print(f"Exit Code: {exit_code}")
+    print(_SECTION_DIVIDER)
+
+
+def _print_bakeoff_summary(baseline_path: str, baseline_data: dict, results: list) -> None:
+    print(_SECTION_DIVIDER)
+    print("BreakPoint Multi-Candidate Bake-Off")
+    print(_SECTION_DIVIDER)
+    print(f"Baseline: {baseline_path}")
+    print()
+    print(f"{'File':<30} {'Status':<8} {'Cost Δ':<15} {'Length Δ':<15} {'Failed Policies'}")
+    print("-" * 85)
+    
+    for fpath, decision, candidate_data in results:
+        fname = os.path.basename(fpath)
+        if len(fname) > 28:
+            fname = fname[:25] + "..."
+            
+        status = decision.status
+        
+        b_cost = baseline_data.get("cost_usd")
+        c_cost = candidate_data.get("cost_usd")
+        cost_str = "-"
+        if isinstance(b_cost, (int, float)) and isinstance(c_cost, (int, float)):
+            cost_str = f"${c_cost - b_cost:+.4f}"
+            
+        b_len = len(str(baseline_data.get("output", "")))
+        c_len = len(str(candidate_data.get("output", "")))
+        len_str = "-"
+        if b_len > 0:
+            pct = (c_len - b_len) / b_len * 100
+            len_str = f"{pct:+.2f}%"
+            
+        failed = []
+        statuses = _policy_status_by_reason_code(decision.reason_codes)
+        for p, s in statuses.items():
+            if s in ("WARN", "BLOCK"):
+                failed.append(p)
+        failed_str = ", ".join(failed) if failed else "-"
+        
+        print(f"{fname:<30} {status:<8} {cost_str:<15} {len_str:<15} {failed_str}")
+        
     print(_SECTION_DIVIDER)
 
 
