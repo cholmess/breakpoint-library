@@ -4,18 +4,46 @@ BreakPoint Evaluation
 
 Mode: full
 
+Policies evaluated (Full mode):
+  • PII: Block if email, phone, credit card, or SSN detected in candidate output.
+  • Red Team: Block if configured safety regex patterns (toxicity, injection, etc.) match Candidate output.
+  • Response format: If baseline output is JSON, candidate must be valid JSON and match keys/types.
+  • Cost: WARN/BLOCK on % or $ increase vs baseline (thresholds from config).
+  • Latency: WARN/BLOCK on % or ms increase vs baseline (thresholds from config).
+  • Output drift: WARN/BLOCK on length change and similarity drop vs baseline.
+
+Input Comparison:
+  Output Length: 46 chars → 70 chars
+  Cost: $1.0000 → $1.2500
+  Latency: 100ms → 135ms
+  Model: gpt-4.1-mini → gpt-4.1-mini
+
 Final Decision: WARN
 
 Policy Results:
-✓ No PII detected: No matches.
-✓ Response format: No schema drift detected.
-⚠ Cost: Delta +25.00%.
-⚠ Latency: Delta +35.00%.
-⚠ Output drift: Length delta +52.17%, similarity 0.400000.
+🟢 ✓ No PII detected: No matches.
+🟢 ✓ Red Team safety: No matches.
+🟢 ✓ Response format: No schema drift detected.
+🟡 ⚠ Cost: Delta +25.00%. ($1.0000 → $1.2500, +$0.2500) [🟡 WARN threshold exceeded]
+🟡 ⚠ Latency: Delta +35.00%. (100ms → 135ms, +35ms)
+🟡 ⚠ Output drift: Expansion +52.17%, similarity 0.400000. (46 → 70 chars) [🟡 WARN threshold exceeded]
+
+Detailed Metrics:
+  Cost delta %: +25.00%
+  Cost delta USD: +0.250000
+  Latency delta %: +35.00%
+  Latency delta ms: +35.00
+  Expansion %: +52.17%
+  Similarity: 0.400000
 
 Summary:
 Cost increased by 25.0% (>=20%).
 2 additional signal(s) detected.
+
+Reason Codes:
+  - COST_INCREASE_WARN
+  - LATENCY_INCREASE_WARN
+  - DRIFT_EXPANSION_WARN
 
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

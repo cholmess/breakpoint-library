@@ -4,14 +4,34 @@ BreakPoint Evaluation
 
 Mode: full
 
+Policies evaluated (Full mode):
+  • PII: Block if email, phone, credit card, or SSN detected in candidate output.
+  • Red Team: Block if configured safety regex patterns (toxicity, injection, etc.) match Candidate output.
+  • Response format: If baseline output is JSON, candidate must be valid JSON and match keys/types.
+  • Cost: WARN/BLOCK on % or $ increase vs baseline (thresholds from config).
+  • Latency: WARN/BLOCK on % or ms increase vs baseline (thresholds from config).
+  • Output drift: WARN/BLOCK on length change and similarity drop vs baseline.
+
+Input Comparison:
+  Output Length: 46 chars → 46 chars
+  Cost: $1.0000 → $1.0100
+  Latency: 100ms → 102ms
+  Model: gpt-4.1-mini → gpt-4.1-mini
+
 Final Decision: ALLOW
 
 Policy Results:
-✓ No PII detected: No matches.
-✓ Response format: No schema drift detected.
-✓ Cost: No issues.
-✓ Latency: Delta +2.00%.
-✓ Output drift: No issues.
+🟢 ✓ No PII detected: No matches.
+🟢 ✓ Red Team safety: No matches.
+🟢 ✓ Response format: No schema drift detected.
+🟢 ✓ Cost: No issues. ($1.0000 → $1.0100, +$0.0100)
+🟢 ✓ Latency: Delta +2.00%. (100ms → 102ms, +2ms)
+🟢 ✓ Output drift: No issues. (46 → 46 chars)
+
+Detailed Metrics:
+  Latency delta %: +2.00%
+  Latency delta ms: +2.00
+  Similarity: 1.000000
 
 Summary:
 No risky deltas detected against configured policies.

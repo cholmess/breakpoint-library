@@ -4,19 +4,50 @@ BreakPoint Evaluation
 
 Mode: full
 
+Policies evaluated (Full mode):
+  • PII: Block if email, phone, credit card, or SSN detected in candidate output.
+  • Red Team: Block if configured safety regex patterns (toxicity, injection, etc.) match Candidate output.
+  • Response format: If baseline output is JSON, candidate must be valid JSON and match keys/types.
+  • Cost: WARN/BLOCK on % or $ increase vs baseline (thresholds from config).
+  • Latency: WARN/BLOCK on % or ms increase vs baseline (thresholds from config).
+  • Output drift: WARN/BLOCK on length change and similarity drop vs baseline.
+
+Input Comparison:
+  Output Length: 140 chars → 38 chars
+  Cost: $0.4500 → $0.4500
+  Tokens In: 50000 → 50000
+  Tokens Out: 10000 → 10000
+  Latency: 180ms → 185ms
+  Model: gpt-4.1-mini → gpt-4.1-mini
+
 Final Decision: BLOCK
 
 Policy Results:
-✓ No PII detected: No matches.
-✗ Response format: Invalid JSON detected (1).
-✓ Cost: No issues.
-✓ Latency: Delta +2.78%.
-✗ Output drift: Length delta +72.86%, similarity 0.067164.
+🟢 ✓ No PII detected: No matches.
+🟢 ✓ Red Team safety: No matches.
+🔴 ✗ Response format: Invalid JSON detected (1).
+🟢 ✓ Cost: No issues.
+🟢 ✓ Latency: Delta +2.78%. (180ms → 185ms, +5ms)
+🔴 ✗ Output drift: Compression +72.86%, similarity 0.067164. (140 → 38 chars) [🔴 BLOCK threshold exceeded]
+
+Detailed Metrics:
+  Latency delta %: +2.78%
+  Latency delta ms: +5.00
+  Compression %: +72.86%
+  Short ratio: 0.271429
+  Output contract invalid JSON count: 1
+  Similarity: 0.067164
 
 Summary:
 - Output contract break: candidate output is not valid JSON.
 - Response length compressed: baseline 140 chars vs candidate 38 chars (72.9%, block threshold 70%).
 2 additional non-blocking signal(s) detected.
+
+Reason Codes:
+  - OUTPUT_CONTRACT_INVALID_JSON_BLOCK
+  - DRIFT_COMPRESSION_BLOCK
+  - DRIFT_TOO_SHORT_WARN
+  - DRIFT_SIMILARITY_WARN
 
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
