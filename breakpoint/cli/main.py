@@ -331,6 +331,23 @@ def _read_json(path: str, stdin_cache: dict[str, str]) -> dict:
         if "stdin" not in stdin_cache:
             stdin_cache["stdin"] = sys.stdin.read()
         return json.loads(stdin_cache["stdin"])
+    if path.startswith("ref:"):
+        import subprocess
+        parts = path.split(":", 2)
+        if len(parts) == 3:
+            ref = parts[1]
+            file_path = parts[2]
+            try:
+                content = subprocess.check_output(
+                    ["git", "show", f"{ref}:{file_path}"], 
+                    text=True, 
+                    stderr=subprocess.PIPE
+                )
+                return json.loads(content)
+            except subprocess.CalledProcessError as exc:
+                raise ValueError(f"Failed to fetch file from git '{ref}:{file_path}': {exc.stderr.strip()}") from exc
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Failed to parse JSON from git '{ref}:{file_path}': {exc}") from exc
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
