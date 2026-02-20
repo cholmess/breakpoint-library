@@ -49,28 +49,53 @@ def evaluate_output_contract_policy(baseline: dict, candidate: dict, config: dic
     missing_keys: list[str] = []
     type_mismatches: list[str] = []
 
-    if isinstance(baseline_payload, dict) and isinstance(candidate_payload, dict):
-        baseline_keys = set(baseline_payload.keys())
-        candidate_keys = set(candidate_payload.keys())
-        missing_keys = sorted(baseline_keys - candidate_keys)
-        if missing_keys and bool(config.get("warn_on_missing_keys", True)):
-            reasons.append(
-                "Output contract regression: missing keys "
-                + ", ".join(missing_keys[:10])
-                + ("." if len(missing_keys) <= 10 else f" (+{len(missing_keys) - 10} more).")
-            )
-            codes.append("CONTRACT_WARN_MISSING_KEYS")
+    def _compare_schema(b_node: object, c_node: object, path: str):
+        b_type = _json_type_name(b_node)
+        c_type = _json_type_name(c_node)
 
-        for key in sorted(baseline_keys & candidate_keys):
-            if type(baseline_payload[key]) is not type(candidate_payload[key]):
-                type_mismatches.append(key)
-        if type_mismatches and bool(config.get("warn_on_type_mismatch", True)):
-            reasons.append(
-                "Output contract regression: type mismatch for keys "
-                + ", ".join(type_mismatches[:10])
-                + ("." if len(type_mismatches) <= 10 else f" (+{len(type_mismatches) - 10} more).")
-            )
-            codes.append("CONTRACT_WARN_TYPE_MISMATCH")
+        if b_type != c_type:
+            # Avoid duplicate top-level type matching since it's already caught
+            if path:
+                type_mismatches.append(path)
+            return
+
+        if b_type == "object":
+            b_keys = set(b_node.keys())
+            c_keys = set(c_node.keys())
+
+            for k in b_keys - c_keys:
+                missing_keys.append(f"{path}.{k}" if path else k)
+
+            for k in b_keys & c_keys:
+                next_path = f"{path}.{k}" if path else k
+                _compare_schema(b_node[k], c_node[k], next_path)
+
+        elif b_type == "array":
+            if b_node and c_node:
+                # Compare representative element (index 0)
+                next_path = f"{path}[0]"
+                _compare_schema(b_node[0], c_node[0], next_path)
+
+    if type(baseline_payload) is type(candidate_payload):
+        _compare_schema(baseline_payload, candidate_payload, "")
+            
+    if missing_keys and bool(config.get("warn_on_missing_keys", True)):
+        missing_keys.sort()
+        reasons.append(
+            "Output contract regression: missing keys "
+            + ", ".join(missing_keys[:10])
+            + ("." if len(missing_keys) <= 10 else f" (+{len(missing_keys) - 10} more).")
+        )
+        codes.append("CONTRACT_WARN_MISSING_KEYS")
+
+    if type_mismatches and bool(config.get("warn_on_type_mismatch", True)):
+        type_mismatches.sort()
+        reasons.append(
+            "Output contract regression: type mismatch for keys "
+            + ", ".join(type_mismatches[:10])
+            + ("." if len(type_mismatches) <= 10 else f" (+{len(type_mismatches) - 10} more).")
+        )
+        codes.append("CONTRACT_WARN_TYPE_MISMATCH")
 
     if missing_keys:
         details["missing_keys"] = missing_keys
