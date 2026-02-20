@@ -167,6 +167,7 @@ If you only want hard failures:
 
 ## Next Docs
 
+- **Terminal output (Lite vs Full):** `docs/terminal-output-lite-vs-full.md` — same format, 3 vs 5 policy lines
 - Full mode: `docs/user-guide-full-mode.md` (config, presets, environments, waivers, output contract, latency, custom pricing)
 - Quickstart: `docs/quickstart-10min.md`
 - Presets: `docs/policy-presets.md`

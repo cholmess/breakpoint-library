@@ -8,6 +8,8 @@ In **Lite** mode the terminal shows only the policies that run: **3 lines** (No 
 
 In **Full** mode the terminal shows **5 lines**: No PII, **Response format**, Cost, **Latency**, Output drift. So you can tell the mode at a glance: Lite has 3 policy lines, Full has 5.
 
+For a side-by-side reference in the same format (Command → Actual Output → Result), see **`docs/terminal-output-lite-vs-full.md`**.
+
 ## When to Use Full Mode
 
 Use Full mode when you need:

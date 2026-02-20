@@ -349,6 +349,7 @@ print(decision.reasons)
 
 - `docs/user-guide.md`
 - `docs/user-guide-full-mode.md` (Full mode: config, presets, environments, waivers)
+- `docs/terminal-output-lite-vs-full.md` (Lite vs Full terminal output, same format)
 - `docs/quickstart-10min.md`
 - `docs/install-worthy-examples.md`
 - `docs/baseline-lifecycle.md`
