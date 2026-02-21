@@ -1,10 +1,13 @@
-# Publish breakpoint-ai to PyPI on release.
+# Publish breakpoint-ai to PyPI on tag push or release.
 # Setup: Add this repo as a Trusted Publisher on PyPI (pypi.org/manage/project/breakpoint-ai/settings/publishing/)
 name: Publish Python Package to PyPI
 
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
