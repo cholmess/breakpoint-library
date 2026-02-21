@@ -25,5 +25,5 @@ def require_ml_plugin(feature_name: str) -> None:
         raise ImportError(
             f"The feature '{feature_name}' requires the 'ml' plugin, but the following "
             f"dependencies are missing: {', '.join(missing)}.\n"
-            "Please install them using: pip install breakpoint-library[ml]"
+            "Please install them using: pip install breakpoint-ai[ml]"
         )

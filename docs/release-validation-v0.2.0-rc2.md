@@ -8,7 +8,7 @@ Validate first-run behavior from a clean clone context.
 
 ## Environment
 
-- Clone path: `/tmp/breakpoint-library-fresh-rc2`
+- Clone path: `/tmp/breakpoint-ai-fresh-rc2`
 - Command path tested: quickstart WARN scenario
 
 ## Attempt 1 (full install path)

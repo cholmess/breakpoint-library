@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "breakpoint-library"
-version = "0.1.3"
+name = "breakpoint-ai"
+version = "0.1.4"
 description = "Local-first decision engine for baseline vs candidate LLM output checks."
 readme = "README.md"
 authors = [{ name = "Christopher Holmes", email = "c.holmes.silva@gmail.com" }]

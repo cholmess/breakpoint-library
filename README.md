@@ -1,6 +1,10 @@
-# BreakPoint Library
+# BreakPoint AI
 
 Prevent bad AI releases before they hit production.
+
+```bash
+pip install breakpoint-ai
+```
 
 You change a model.
 The output looks fine.
@@ -234,4 +238,4 @@ print(decision.reasons)
 
 ## Contact
 
-Suggestions and feedback: [c.holmes.silva@gmail.com](mailto:c.holmes.silva@gmail.com) or [open an issue](https://github.com/cholmess/breakpoint-library/issues).
+Suggestions and feedback: [c.holmes.silva@gmail.com](mailto:c.holmes.silva@gmail.com) or [open an issue](https://github.com/cholmess/breakpoint-ai/issues).

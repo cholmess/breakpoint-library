@@ -1,0 +1,57 @@
+name: 'BreakPoint Evaluate'
+description: 'Evaluate AI outputs against baselines using BreakPoint AI. Prevent bad AI releases before they hit production.'
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  baseline:
+    description: 'Path to baseline JSON file'
+    required: true
+  candidate:
+    description: 'Path to candidate JSON file'
+    required: true
+  fail-on:
+    description: 'Level to fail on (warn or block)'
+    required: false
+    default: 'warn'
+  mode:
+    description: 'Mode to run in (lite or full)'
+    required: false
+    default: 'lite'
+  config:
+    description: 'Path to policy config JSON (full mode only)'
+    required: false
+  env:
+    description: 'Environment name (full mode only)'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install BreakPoint AI
+      shell: bash
+      run: pip install breakpoint-ai
+      
+    - name: Run Evaluation
+      shell: bash
+      run: |
+        CMD="breakpoint evaluate ${{ inputs.baseline }} ${{ inputs.candidate }} --fail-on ${{ inputs.fail-on }} --json"
+        
+        if [ "${{ inputs.mode }}" = "full" ]; then
+          CMD="$CMD --mode full"
+          if [ -n "${{ inputs.config }}" ]; then
+            CMD="$CMD --config ${{ inputs.config }}"
+          fi
+          if [ -n "${{ inputs.env }}" ]; then
+            CMD="$CMD --env ${{ inputs.env }}"
+          fi
+        fi
+        
+        echo "Running: $CMD"
+        $CMD
