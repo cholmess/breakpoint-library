@@ -231,3 +231,7 @@ print(decision.reasons)
 - `docs/value-metrics.md`
 - `docs/policy-presets.md`
 - `docs/release-gate-audit.md`
+
+## Contact
+
+Suggestions and feedback: [c.holmes.silva@gmail.com](mailto:c.holmes.silva@gmail.com) or [open an issue](https://github.com/cholmess/breakpoint-library/issues).
