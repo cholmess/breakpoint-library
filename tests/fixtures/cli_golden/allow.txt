@@ -36,5 +36,7 @@ Detailed Metrics:
 Summary:
 No risky deltas detected against configured policies.
 
+Recommended action: Safe to ship.
+
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -49,5 +49,7 @@ Reason Codes:
   - DRIFT_TOO_SHORT_WARN
   - DRIFT_SIMILARITY_WARN
 
+Recommended action: Stop deploy and investigate.
+
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

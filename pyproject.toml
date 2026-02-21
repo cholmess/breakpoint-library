@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "breakpoint-ai"
-version = "0.1.7"
+version = "0.1.8"
 description = "Local-first decision engine for baseline vs candidate LLM output checks."
 readme = "README.md"
 authors = [{ name = "Christopher Holmes", email = "c.holmes.silva@gmail.com" }]
@@ -26,7 +26,11 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+]
 ml = [
     "sentence-transformers>=2.2.2",
     "torch>=2.0.0",

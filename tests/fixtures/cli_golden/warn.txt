@@ -45,5 +45,7 @@ Reason Codes:
   - LATENCY_INCREASE_WARN
   - DRIFT_EXPANSION_WARN
 
+Recommended action: Ship with review.
+
 Exit Code: 0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

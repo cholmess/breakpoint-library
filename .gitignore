@@ -2,3 +2,14 @@
 .Rhistory
 __pycache__/
 .pytest_cache/
+*.egg-info/
+dist/
+build/
+*.whl
+*.tar.gz
+
+# Promo / internal docs (keep local)
+docs/x-thread-*.md
+docs/promo-*
+docs/action-publishing-guide.md
+docs/action-marketplace-README.md

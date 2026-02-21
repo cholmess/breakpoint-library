@@ -3,6 +3,11 @@ import json
 import os
 import sys
 
+try:
+    from importlib.metadata import version as _pkg_version
+except ImportError:
+    _pkg_version = lambda _: "0.0.0"
+
 from breakpoint.engine.errors import ConfigValidationError
 from breakpoint.engine.config import available_presets, load_config
 from breakpoint.engine.metrics import summarize_decisions
@@ -60,6 +65,11 @@ _SECTION_DIVIDER = "━━━━━━━━━━━━━━━━━━━━
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="breakpoint")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_pkg_version('breakpoint-ai')}",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     evaluate_parser = subparsers.add_parser("evaluate", help="Compare baseline and candidate.")
@@ -512,7 +522,9 @@ def _print_text_decision(
         for code in decision.reason_codes:
             print(f"  - {code}")
         print()
-    
+
+    print(f"Recommended action: {_recommended_action(decision.status)}")
+    print()
     print(f"Exit Code: {exit_code}")
     print(_SECTION_DIVIDER)
 

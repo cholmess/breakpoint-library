@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-02-22
+
+### Added
+- `breakpoint --version` CLI flag
+- Recommended action line in text output (Safe to ship / Ship with review / Stop deploy and investigate)
+- CI workflow for tests and demo smoke (.github/workflows/test.yml)
+- Dev dependencies: pytest-cov, ruff
+
+### Changed
+- .gitignore: dist/, *.egg-info/, build artifacts
+
 ## [0.1.7] - 2025-02-21
 
 ### Added
