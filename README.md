@@ -1,5 +1,8 @@
 # BreakPoint AI
 
+[![PyPI](https://img.shields.io/pypi/v/breakpoint-ai)](https://pypi.org/project/breakpoint-ai/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Prevent bad AI releases before they hit production.
 
 ```bash
@@ -268,6 +271,12 @@ print(decision.status)
 print(decision.reasons)
 ```
 
+## Troubleshooting
+
+- `ModuleNotFoundError: breakpoint`: Run `pip install breakpoint-ai` (or `pip install -e .` if developing).
+- File not found errors: Ensure baseline and candidate JSON paths are correct and files exist.
+- JSON validation errors: Verify your JSON files have at least an `output` field (string). See Input Schema above.
+
 ## Additional Docs
 
 - `docs/user-guide.md`
@@ -286,5 +295,7 @@ print(decision.reasons)
 Add these topics in your repo settings for discoverability: `ai`, `llm`, `evaluation`, `ci`, `quality-gate`, `github-actions`, `breakpoint`.
 
 ## Contact
+
+**First-time user?** We'd love your feedback — [open an issue](https://github.com/cholmess/breakpoint-ai/issues) or email [c.holmes.silva@gmail.com](mailto:c.holmes.silva@gmail.com).
 
 Suggestions and feedback: [c.holmes.silva@gmail.com](mailto:c.holmes.silva@gmail.com) or [open an issue](https://github.com/cholmess/breakpoint-ai/issues).
