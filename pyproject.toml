@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "breakpoint-ai"
 version = "0.1.8"
 description = "Local-first decision engine for baseline vs candidate LLM output checks."
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 authors = [{ name = "Christopher Holmes", email = "c.holmes.silva@gmail.com" }]
 requires-python = ">=3.10,<3.13"
 dependencies = []

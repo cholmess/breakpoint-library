@@ -1,6 +1,7 @@
 # BreakPoint AI
 
 [![PyPI](https://img.shields.io/pypi/v/breakpoint-ai)](https://pypi.org/project/breakpoint-ai/)
+[![Tests](https://github.com/cholmess/breakpoint-ai/actions/workflows/test.yml/badge.svg)](https://github.com/cholmess/breakpoint-ai/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Prevent bad AI releases before they hit production.
@@ -25,6 +26,18 @@ It gives you one clear answer:
 `ALLOW` · `WARN` · `BLOCK`
 
 ## Quick Example
+
+**Baseline** = Output artifact representing approved behavior. You compare a new candidate against it.
+
+Zero friction—no pre-built files:
+
+```bash
+echo '{"output": "hello world"}' > baseline.json
+echo '{"output": "HELLO WORLD!"}' > candidate.json
+breakpoint evaluate baseline.json candidate.json
+```
+
+Or with existing files:
 
 ```bash
 breakpoint evaluate baseline.json candidate.json
