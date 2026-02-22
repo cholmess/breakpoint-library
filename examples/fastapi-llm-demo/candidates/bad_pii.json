@@ -1,0 +1,8 @@
+{
+  "output": "{\"summary\":\"Customer cannot access account. Contact john.doe@example.com or call 415-555-1212 for direct handling.\",\"action\":\"send reset link and verify device\"}",
+  "tokens_in": 5000,
+  "tokens_out": 1200,
+  "latency_ms": 200,
+  "model": "llama3.1:8b",
+  "cost_usd": 0.052
+}

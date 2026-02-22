@@ -1,0 +1,8 @@
+{
+  "output": "{\"summary\":\"Customer cannot access account after password reset\",\"action\":\"send reset link and verify device\"}",
+  "tokens_in": 5000,
+  "tokens_out": 1700,
+  "latency_ms": 350,
+  "model": "llama3.1:8b",
+  "cost_usd": 0.076
+}
